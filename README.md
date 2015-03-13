@@ -17,5 +17,5 @@ HELP:
 	-d <directory>			Calculate checksum for each file in a directory
 	-z <archive>			Calculate checksum for archive and each file in it
 	-h						Display this page
-	
+	-v						Display version
 	
