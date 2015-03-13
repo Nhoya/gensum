@@ -13,9 +13,9 @@ HELP:
 	
 	Available Options:
 	-m                		Uses MD5 checksum.
-	-s [1|256|all]    		Uses SHA1|SHA256 or both checksums.
-	-d <directory>			  Calculate checksum for each file in a directory
-	-z <archive>		      Calculate checksum for archive and each file in it
-	-h			    	        Display this page
+	-s [1|256|all]			Uses SHA1|SHA256 or both checksums.
+	-d <directory>			Calculate checksum for each file in a directory
+	-z <archive>		      	Calculate checksum for archive and each file in it
+	-h				Display this page
 	
 	
