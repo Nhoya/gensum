@@ -72,7 +72,7 @@ help() {
 	echo "gensum 1.0 (3/13/2015), generate checksum of your files"
 	echo "Copyright(C) 2015 sten_gun, Nhoya"
 	echo ""
-	echo "Usage: gensum [options] files"
+	echo "Usage: gensum [options] [files]"
 	echo ""
 	echo "Available Options:"
 	echo "-m 						Uses MD5 checksum."
