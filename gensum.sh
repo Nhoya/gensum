@@ -129,7 +129,7 @@ for file in ${@:$OPTIND}; do
     if [ -e $file ]; then
         checksum $file
     else
-        echo "$file: file  doesen't exist"
+        echo "$file: file  doesn't exist"
     fi
 done
 
