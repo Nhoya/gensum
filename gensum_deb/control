@@ -1,0 +1,13 @@
+Source: gensum
+Section: utils
+Priority: extra
+Maintainer: nhoya <nhoya@inforge.org>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Homepage: https://github.com/nhoya/gensum
+
+Package: gensum
+Architecture: all
+Depends: unar
+Description: Speed un your checksumes!
+ Bash script that generates checksums from archive, folders or files. Useful for forensic analists
