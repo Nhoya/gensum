@@ -75,12 +75,12 @@ help() {
 	echo "Usage: gensum [options] files"
 	echo ""
 	echo "Available Options:"
-	echo "-m                		Uses MD5 checksum."
-	echo "-s [1|256|all]    		Uses SHA1|SHA256 or both checksums."
-	echo "-d <directory>			Calculate checksum for each file in a directory"
-	echo "-z <archive>			Calculate checksum for archive and each file in it"
-	echo "-v				Display version"
-	echo "-h			    	Display this page"
+	echo "-m 						Uses MD5 checksum."
+	echo "-s [1|256|all] 			Uses SHA1|SHA256 or both checksums."
+	echo "-d <directory> 			Calculate checksum for each file in a directory"
+	echo "-z <archive> 				Calculate checksum for archive and each file in it"
+	echo "-v 						Display version"
+	echo "-h 						Display this page"
 }
 #---------------------------------------------------- Script Start
 
