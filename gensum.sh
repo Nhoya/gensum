@@ -19,8 +19,8 @@ TMPDIR=/tmp/genchecksum
 version="1.1 (3/14/15)"
 
 checksum() {
-        if test -v MD5 ; then
-            echo "md5: $(md5sum $1 )"
+       if test -v MD5 ; then
+           echo "md5: $(md5sum $1 )"
         fi
         if test -v SHA ; then
             if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
@@ -29,11 +29,14 @@ checksum() {
             if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
                 echo "sha256: $(sha256sum  $1)"
             fi
-        fi
+	fi
+	if test -v CK ; then
+		echo "CRC: $(cksum $1 )"
+	fi
         echo ""
 }
 string_sum() {
-if test -v MD5 ; then
+	if test -v MD5 ; then
             echo "md5: $(echo -n "$1" | md5sum )"
         fi
         if test -v SHA ; then
@@ -89,8 +92,9 @@ help() {
 	echo "Usage: gensum [options] [files]"
 	echo ""
 	echo "Available Options:"
-	echo "-m 						Uses MD5 checksum."
-	echo "-s [1|256|all] 			Uses SHA1|SHA256 or both checksums."
+	echo "-m 						Uses MD5 checksum"
+	echo "-s [1|256|all] 			Uses SHA1|SHA256 or both checksums"
+	echo "-c 						Uses CRC checksum"
 	echo "-d <directory> 			Calculate checksum for each file in a directory"
 	echo "-z <archive> 				Calculate checksum for archive and each file in it"
 	echo "-t <string>				Calculate checksum for string"
@@ -99,7 +103,7 @@ help() {
 }
 #---------------------------------------------------- Script Start
 
-while getopts ":as:mhv" opt; do
+while getopts ":as:mhvk:" opt; do
     case "$opt" in
         h)  help
             exit 0
@@ -108,6 +112,8 @@ while getopts ":as:mhv" opt; do
         ;;
         m) MD5=1
         ;;
+	k) CK=1
+	;;
         :) echo "-$OPTARG need param: 256 / 1 / all"
         ;;
 	v) echo $version
@@ -116,13 +122,14 @@ while getopts ":as:mhv" opt; do
     esac
 done
 
-if ! [ -v SHA ] && ! [ -v MD5 ]; then
+if ! [ -v SHA ] && ! [ -v MD5 ]  && ! [ -v CK ]; then
     SHA="all"
     MD5=1
+    CK=1
 fi
 
 OPTIND=1
-while getopts ":z:d:t:as:mhv" opt; do
+while getopts ":z:d:t:kas:mhv" opt; do
     case "$opt" in
       z) echo "Checking archive $OPTARG"
       archive $OPTARG
