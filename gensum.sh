@@ -38,10 +38,10 @@ if test -v MD5 ; then
         fi
         if test -v SHA ; then
             if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                echo "sha1:  $(echo -e "$1" | sha1sum)"
+                echo "sha1:  $(echo -n "$1" | sha1sum)"
             fi
             if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                echo "sha256: $(echo -e "$1" | sha256sum)"
+                echo "sha256: $(echo -n "$1" | sha256sum)"
             fi
         fi
         echo ""
