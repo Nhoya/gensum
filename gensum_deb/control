@@ -10,4 +10,4 @@ Package: gensum
 Architecture: all
 Depends: unar
 Description: Speed un your checksumes!
- Bash script that generates checksums from archive, folders or files. Useful for forensic analists
+ Bash script that generates checksums from archives, folders, files and strings.Useful for forensic analists
