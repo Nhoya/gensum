@@ -1,3 +1,11 @@
+gensum (1.2) unstable; urgency=low
+
+  * Fixed string_sum() function
+  * Added CRC check
+  * Added -k option
+
+-- nhoya <nhoya@inforge.org>  Sat, 14 Mar 2015 18:50:38 +0100
+
 gensum (1.1) unstable; urgency=low
 
   * Added string_sum() function
