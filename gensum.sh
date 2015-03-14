@@ -130,6 +130,8 @@ while getopts ":z:d:t:as:mhv" opt; do
       d) echo "Checking directory $OPTARG"
       checksum_cascade $OPTARG
       ;;
+      t) string_sum $OPTARG
+      ;;
       \?) echo "invalid option(s): -$OPTARG"
           exit 1
       ;;
