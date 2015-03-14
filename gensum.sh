@@ -16,7 +16,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 TMPDIR=/tmp/genchecksum
-version="1.0 (3/13/15)"
+version="1.1 (3/14/15)"
 
 checksum() {
         if test -v MD5 ; then
@@ -28,6 +28,20 @@ checksum() {
             fi
             if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
                 echo "sha256: $(sha256sum  $1)"
+            fi
+        fi
+        echo ""
+}
+string_sum() {
+if test -v MD5 ; then
+            echo "md5: $(echo -e "$1" | md5sum )"
+        fi
+        if test -v SHA ; then
+            if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
+                echo "sha1:  $(echo -e "$1" | sha1sum)"
+            fi
+            if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
+                echo "sha256: $(echo -e "$1" | sha256sum)"
             fi
         fi
         echo ""
@@ -69,7 +83,7 @@ fi
 }
 
 help() {
-	echo "gensum 1.0 (3/13/2015), generate checksum of your files"
+	echo "gensum 1.1 (3/14/2015), powerful checksums generator!"
 	echo "Copyright(C) 2015 sten_gun, Nhoya"
 	echo ""
 	echo "Usage: gensum [options] [files]"
@@ -79,6 +93,7 @@ help() {
 	echo "-s [1|256|all] 			Uses SHA1|SHA256 or both checksums."
 	echo "-d <directory> 			Calculate checksum for each file in a directory"
 	echo "-z <archive> 				Calculate checksum for archive and each file in it"
+	echo "-t <string>				Calculate checksum for string"
 	echo "-v 						Display version"
 	echo "-h 						Display this page"
 }
@@ -107,7 +122,7 @@ if ! [ -v SHA ] && ! [ -v MD5 ]; then
 fi
 
 OPTIND=1
-while getopts ":z:d:as:mhv" opt; do
+while getopts ":z:d:t:as:mhv" opt; do
     case "$opt" in
       z) echo "Checking archive $OPTARG"
       archive $OPTARG
