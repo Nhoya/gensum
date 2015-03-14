@@ -34,7 +34,7 @@ checksum() {
 }
 string_sum() {
 if test -v MD5 ; then
-            echo "md5: $(echo -e "$1" | md5sum )"
+            echo "md5: $(echo -n "$1" | md5sum )"
         fi
         if test -v SHA ; then
             if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
