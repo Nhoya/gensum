@@ -16,7 +16,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 TMPDIR=/tmp/genchecksum
-version="1.1 (3/14/15)"
+version="1.2 (3/14/15)"
 
 checksum() {
        if test -v MD5 ; then
