@@ -6,7 +6,7 @@ Gensum is a bash script created with the intent to speed up the work of any fore
 Additional dependencies: unar
 
 HELP:
-	gensum 1.1 (3/14/2015), generate checksum of your files  
+	gensum 1.1 (3/14/2015), powerfuk checksum generator 
 	Copyright(C) 2015 sten_gun, Nhoya  
 	
 	Usage: gensum [options] file(s)
