@@ -51,16 +51,16 @@ checksum() {
 string_sum() {
     local r=1
 	if test -v MD5 ; then
-            echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(echo -n "$1" | md5sum )"
+            echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(echo -n "$1" | md5sum |awk '{print$1}')"
             r=$(($r+1))
         fi
         if test -v SHA ; then
             if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum)"
+                echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum |awk '{print$1}')"
                 r=$(($r+1))
             fi
             if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum)"
+                echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum |awk '{print$1}')"
                 r=$(($r+1))
             fi
         fi
