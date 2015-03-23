@@ -103,7 +103,7 @@ fi
 }
 
 help() {
-	echo "gensum $version, powerful checksums generator!"
+	echo "gensum $version, powerful multi file, multi checksum generator."
 	echo "Copyright(C) 2015 sten_gun, Nhoya"
 	echo ""
 	echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
@@ -111,11 +111,11 @@ help() {
 	echo "  Available Options:"
 	echo "    -m                        Uses MD5 checksum"
 	echo "    -s [1|256|all]            Uses SHA1|SHA256 or both checksums"
-	echo "    -c                        Uses CRC checksum"
+	echo "    -k                        Uses CRC checksum"
 	echo "    -d <directory>            Calculate checksum for each file in a directory"
 	echo "    -z <archive>              Calculate checksum for archive and each file in it"
 	echo "    -t                        Calculate checksum for strings instead of files (put string as arg)"
-	echo "    -v                        Display version"
+	echo "    -v                        Display script version"
 	echo "    -h                        Display this page"
 }
 #---------------------------------------------------- Script Start
