@@ -87,7 +87,7 @@ fi
 }
 
 help() {
-	echo "gensum 1.1 (3/14/2015), powerful checksums generator!"
+	echo "gensum 1.2 (3/14/2015), powerful checksums generator!"
 	echo "Copyright(C) 2015 sten_gun, Nhoya"
 	echo ""
 	echo "Usage: gensum [options] [files]"
