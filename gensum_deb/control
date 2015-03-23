@@ -9,5 +9,5 @@ Homepage: https://github.com/nhoya/gensum
 Package: gensum
 Architecture: all
 Depends: unar
-Description: Speed un your checksumes!
- Bash script that generates checksums from archives, folders, files and strings.Useful for forensic analists
+Description: Powerful checksums generator!
+Gensum is a bash script created with the intent to speed up the work of any forensic Analyst. It recursively generates checksums (SHA1, SHA256, MD5 and CRC) starting from archives (and its contents), folders, files and even strings!
