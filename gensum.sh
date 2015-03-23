@@ -24,129 +24,143 @@ readonly BLUE="\033[01;34m"
 readonly YELLOW="\033[00;33m"
 readonly BOLD="\033[01m"
 readonly FINE="\033[0m"
-spacer() { echo -e $GREEN"=========================================================="$FINE 
+spacer() {
+        if [ "$#" == "0" ]; then
+                echo -e $GREEN"=========================================================="$FINE
+        fi
+        if [ "$#" -gt "0" ]; then
+                strn="$1"
+                for st in ${@:2:$#}; do
+                strn="$strn $st"
+                done
+                echo -e $YELLOW"=========================================================="$FINE
+                tput cuu 1
+                printf %b $YELLOW"==> $FINE$BOLD$strn $FINE\n"
+        fi
 }
 
 checksum() {
-    local r=1
-    if test -v MD5 ; then
-       echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(md5sum $1 )"
-       r=$(($r+1))
-    fi
-    if test -v SHA ; then
-        if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-            echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(sha1sum $1)"
-            r=$(($r+1))
+        spacer $1
+        local r=1
+        if test -v MD5 ; then
+               echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(md5sum $1 | awk '{print$1}')"
+               r=$(($r+1))
         fi
-        if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-            echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(sha256sum  $1)"
-            r=$(($r+1))
+        if test -v SHA ; then
+                if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(sha1sum $1 | awk '{print$1}')"
+                        r=$(($r+1))
+                fi
+                if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(sha256sum  $1 | awk '{print$1}')"
+                        r=$(($r+1))
+                fi
         fi
-	fi
-	if test -v CK ; then
-		echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $(cksum $1 )"
-        r=$(($r+1))
-	fi
-    spacer
+        if test -v CK ; then
+                echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $(cksum $1 |awk '{print$1,$2}')"
+                r=$(($r+1))
+        fi
+        spacer
 }
 
 string_sum() {
-    local r=1
-	if test -v MD5 ; then
-            echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(echo -n "$1" | md5sum |awk '{print$1}')"
-            r=$(($r+1))
+        spacer $1
+        local r=1
+        if test -v MD5 ; then
+                echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(echo -n "$1" | md5sum |awk '{print$1}')"
+                r=$(($r+1))
         fi
         if test -v SHA ; then
-            if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum |awk '{print$1}')"
-                r=$(($r+1))
-            fi
-            if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum |awk '{print$1}')"
-                r=$(($r+1))
-            fi
+                if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum |awk '{print$1}')"
+                        r=$(($r+1))
+                fi
+                if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum |awk '{print$1}')"
+                        r=$(($r+1))
+                fi
         fi
         spacer
 }
 
 ask_del() {
-    echo -e $BOLD"Delete extracted files? ($TMPDIR) [y/n]"$FINE
-    read input
-    case $input in
-        ""| [Yy]) rm -rf $TMPDIR
-                echo -e $RED"Files deleted"$FINE
-        ;;
-        *) echo -e  $YELLOW"Warning: temporary files saved in $TMPDIR"$FINE
-        ;;
+        echo -e $BOLD"Delete extracted files? ($TMPDIR) [y/n]"$FINE
+        read input
+        case $input in
+                ""| [Yy]) rm -rf $TMPDIR
+                        echo -e $RED"Files deleted"$FINE
+                ;;
+                *) echo -e  $YELLOW"Warning: temporary files saved in $TMPDIR"$FINE
+                ;;
 esac
 }
 
 checksum_cascade() {
-    if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz'); then
-        archive $1
-	elif [[ -d $1 ]]; then
-        for file in $1/*; do
-            checksum_cascade $file
-        done
-    else
-        checksum $1
-    fi
+        if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz'); then
+                archive $1
+        elif [[ -d $1 ]]; then
+                for file in $1/*; do
+                        checksum_cascade $file
+                done
+        else
+                checksum $1
+        fi
 }
 
 archive() {
-if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz')
-then
-	mkdir $TMPDIR
-	unar -o $TMPDIR $1
-    checksum $1 2>/dev/null
-	checksum_cascade $TMPDIR
-	ask_del 2>/dev/null
-fi
+        if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz')
+        then
+                mkdir $TMPDIR
+                unar -o $TMPDIR $1
+                checksum $1 2>/dev/null
+                checksum_cascade $TMPDIR
+                ask_del 2>/dev/null
+        fi
 }
 
 help() {
-	echo "gensum $version, powerful multi file, multi checksum generator."
-	echo "Copyright(C) 2015 sten_gun, Nhoya"
-	echo ""
-	echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
-	echo ""
-	echo "  Available Options:"
-	echo "    -m                        Uses MD5 checksum"
-	echo "    -s [1|256|all]            Uses SHA1|SHA256 or both checksums"
-	echo "    -k                        Uses CRC checksum"
-	echo "    -d <directory>            Calculate checksum for each file in a directory"
-	echo "    -z <archive>              Calculate checksum for archive and each file in it"
-	echo "    -t                        Calculate checksum for strings instead of files (put string as arg)"
-	echo "    -v                        Display script version"
-	echo "    -h                        Display this page"
+        echo "gensum $version, powerful multi file, multi checksum generator."
+        echo "Copyright(C) 2015 sten_gun, Nhoya"
+        echo ""
+        echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
+        echo ""
+        echo "  Available Options:"
+        echo "    -m                        Uses MD5 checksum"
+        echo "    -s [1|256|all]            Uses SHA1|SHA256 or both checksums"
+        echo "    -k                        Uses CRC checksum"
+        echo "    -d <directory>            Calculate checksum for each file in a directory"
+        echo "    -z <archive>              Calculate checksum for archive and each file in it"
+        echo "    -t                        Calculate checksum for strings instead of files (put string as arg)"
+        echo "    -v                        Display script version"
+        echo "    -h                        Display this page"
 }
 #---------------------------------------------------- Script Start
 
 while getopts ":z:d:as:mhvtk" opt; do
-    case "$opt" in
-        h)  help
+        case "$opt" in
+            h)  help
+                exit 0
+            ;;
+            s) SHA="$OPTARG"
+            ;;
+            m) MD5=1
+            ;;
+            k) CK=1
+            ;;
+            t) STR=1
+            ;;
+            :) echo -e $RED"-$OPTARG parameter is mandatory: [256| 1 |all]"$FINE
+            ;;
+        v) echo $version
             exit 0
         ;;
-        s) SHA="$OPTARG"
-        ;;
-        m) MD5=1
-        ;;
-	    k) CK=1
-	    ;;
-        t) STR=1
-        ;;
-        :) echo -e $RED"-$OPTARG parameter is mandatory: [256| 1 |all]"$FINE
-        ;;
-	v) echo $version
-		exit 0
-	;;
-    esac
+        esac
 done
 
 if ! [ -v SHA ] && ! [ -v MD5 ]  && ! [ -v CK ]; then
-    SHA="all"
-    MD5=1
-    CK=1
+        SHA="all"
+        MD5=1
+        CK=1
 fi
 
 OPTIND=1
@@ -169,40 +183,38 @@ while getopts ":z:d:as:mhvtk" opt; do
     esac
 done
 
-if test -v STR; then
-    for str in ${@:$OPTIND}; do
-        strings="$strings $str"
-    done
-    if [ -v strings ]; then
-        echo -e $BOLD"String Checksum"$FINE
-	spacer
-        strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        echo -e $YELLOW"==> "$FINE$GREEN$strings$FINE
-        string_sum "$strings"
-    else
-        echo -e $RED"Error: empty string"$FINE
-        exit 1
-    fi
-    exit 0
+    if test -v STR; then
+        for str in ${@:$OPTIND}; do
+                strings="$strings $str"
+        done
+        if [ -v strings ]; then
+                echo -e $BOLD"String Checksum"$FINE
+                spacer
+                strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                string_sum "$strings"
+        else
+                echo -e $RED"Error: empty string"$FINE
+                exit 1
+        fi
+        exit 0
 fi
 
 r=0
 for file in ${@:$OPTIND}; do
-    if [ $r == 0 ] ; then
-    echo -e $BOLD"Checking given files"$FINE
-    spacer
-    r=$(($r+1))
-    fi
-    if [ -d $file ]; then
-        continue
-    fi
-    if [ -e $file ]; then
-        checksum $file
-    else
-
-        echo -e $RED"$file: file  doesn't exist"$FINE
-	spacer
-    fi
+        if [ $r == 0 ] ; then
+                echo -e $BOLD"Checking given files"$FINE
+                spacer
+                r=$(($r+1))
+        fi
+        if [ -d $file ]; then
+                echo -e $RED"$file is a directory, skipping."$FINE
+                spacer
+        elif [ -e $file ]; then
+                checksum $file
+        else
+                echo -e $RED"$file: file  doesn't exist"$FINE
+                spacer
+        fi
 done
 
 exit 0
