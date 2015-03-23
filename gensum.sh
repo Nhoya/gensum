@@ -196,7 +196,7 @@ for file in ${@:$OPTIND}; do
     if [ -e $file ]; then
         checksum $file
     else
-        echo -e $ROSSO"$file: file  doesn't exist"$FINE
+        echo -e $RED"$file: file  doesn't exist"$FINE
     fi
 done
 
