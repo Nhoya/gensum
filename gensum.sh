@@ -24,6 +24,8 @@ readonly BLUE="\033[01;34m"
 readonly YELLOW="\033[00;33m"
 readonly BOLD="\033[01m"
 readonly FINE="\033[0m"
+spacer() { echo -e $GREEN"=========================================================="$FINE 
+}
 
 checksum() {
     local r=1
@@ -45,7 +47,7 @@ checksum() {
 		echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $(cksum $1 )"
         r=$(($r+1))
 	fi
-    echo -e $GREEN"=========================================================="$FINE
+    spacer
 }
 
 string_sum() {
@@ -64,7 +66,7 @@ string_sum() {
                 r=$(($r+1))
             fi
         fi
-        echo -e $GREEN"==========================================================="$FINE
+        spacer
 }
 
 ask_del() {
@@ -151,11 +153,11 @@ OPTIND=1
 while getopts ":z:d:as:mhvtk" opt; do
     case "$opt" in
       z) echo -e $BOLD"Checking archive $OPTARG"$FINE
-      echo -e $GREEN"==========================================================="$FINE
+      spacer
       archive $OPTARG
       ;;
       d) echo -e $BOLD"Checking directory $OPTARG"$FINE
-      echo -e $GREEN"==========================================================="$FINE
+      spacer
       checksum_cascade $OPTARG
       ;;
       \?) echo -e $RED"invalid option(s): -$OPTARG"$FINE
@@ -173,6 +175,7 @@ if test -v STR; then
     done
     if [ -v strings ]; then
         echo -e $BOLD"String Checksum"$FINE
+	spacer
         strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
         echo -e $YELLOW"==> "$FINE$GREEN$strings$FINE
         string_sum "$strings"
@@ -187,7 +190,7 @@ r=0
 for file in ${@:$OPTIND}; do
     if [ $r == 0 ] ; then
     echo -e $BOLD"Checking given files"$FINE
-    echo -e $GREEN"==========================================================="$FINE
+    spacer
     r=$(($r+1))
     fi
     if [ -d $file ]; then
@@ -196,7 +199,9 @@ for file in ${@:$OPTIND}; do
     if [ -e $file ]; then
         checksum $file
     else
+
         echo -e $RED"$file: file  doesn't exist"$FINE
+	spacer
     fi
 done
 
