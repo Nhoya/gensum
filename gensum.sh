@@ -68,11 +68,11 @@ string_sum() {
 }
 
 ask_del() {
-        echo -e $BOLD"Delete extracted files? ($TMPDIR) [y/n]"$FINE
-read input
-case $input in
+    echo -e $BOLD"Delete extracted files? ($TMPDIR) [y/n]"$FINE
+    read input
+    case $input in
         ""| [Yy]) rm -rf $TMPDIR
-        echo -e $RED"Files deleted"$FINE
+                echo -e $RED"Files deleted"$FINE
         ;;
         *) echo -e  $YELLOW"Warning: temporary files saved in $TMPDIR"$FINE
         ;;
