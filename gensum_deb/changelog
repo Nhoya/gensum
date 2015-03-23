@@ -1,3 +1,11 @@
+gensum (1.3) stable; urgency=low
+
+  * New Outfit
+  * Added stringsum
+  * Added -t option
+
+-- nhoya <nhoya@inforge.org>  Mon, 23 Mar 2015 10:47:38 +0100
+
 gensum (1.2) unstable; urgency=low
 
   * Fixed string_sum() function
