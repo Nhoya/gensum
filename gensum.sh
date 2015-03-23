@@ -16,48 +16,67 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 TMPDIR=/tmp/genchecksum
-version="1.2 (3/14/15)"
+version="1.3 (3/23/15)"
+# For text colour
+readonly RED="\033[01;31m"
+readonly GREEN="\033[01;32m"
+readonly BLUE="\033[01;34m"
+readonly YELLOW="\033[00;33m"
+readonly BOLD="\033[01m"
+readonly FINE="\033[0m"
+spacer() { echo -e $GREEN"=========================================================="$FINE 
+}
 
 checksum() {
-       if test -v MD5 ; then
-           echo "md5: $(md5sum $1 )"
+    local r=1
+    if test -v MD5 ; then
+       echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(md5sum $1 )"
+       r=$(($r+1))
+    fi
+    if test -v SHA ; then
+        if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
+            echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(sha1sum $1)"
+            r=$(($r+1))
         fi
-        if test -v SHA ; then
-            if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                echo "sha1:  $(sha1sum $1)"
-            fi
-            if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                echo "sha256: $(sha256sum  $1)"
-            fi
+        if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
+            echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(sha256sum  $1)"
+            r=$(($r+1))
+        fi
 	fi
 	if test -v CK ; then
-		echo "CRC: $(cksum $1 )"
+		echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $(cksum $1 )"
+        r=$(($r+1))
 	fi
-        echo ""
+    spacer
 }
+
 string_sum() {
+    local r=1
 	if test -v MD5 ; then
-            echo "md5: $(echo -n "$1" | md5sum )"
+            echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(echo -n "$1" | md5sum |awk '{print$1}')"
+            r=$(($r+1))
         fi
         if test -v SHA ; then
             if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                echo "sha1:  $(echo -n "$1" | sha1sum)"
+                echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum |awk '{print$1}')"
+                r=$(($r+1))
             fi
             if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                echo "sha256: $(echo -n "$1" | sha256sum)"
+                echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum |awk '{print$1}')"
+                r=$(($r+1))
             fi
         fi
-        echo ""
+        spacer
 }
 
 ask_del() {
-        echo "Delete extracted files? ($TMPDIR) [y/n]"
-read input
-case $input in
+    echo -e $BOLD"Delete extracted files? ($TMPDIR) [y/n]"$FINE
+    read input
+    case $input in
         ""| [Yy]) rm -rf $TMPDIR
-        echo -e "\e[31mFiles deleted\e[0m"
+                echo -e $RED"Files deleted"$FINE
         ;;
-        *) echo -e  "\e[31mWarning: temporary files saved in $TMPDIR\e[0m"
+        *) echo -e  $YELLOW"Warning: temporary files saved in $TMPDIR"$FINE
         ;;
 esac
 }
@@ -66,7 +85,7 @@ checksum_cascade() {
     if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz'); then
         archive $1
 	elif [[ -d $1 ]]; then
-        for file in "$1/*"; do
+        for file in $1/*; do
             checksum_cascade $file
         done
     else
@@ -86,24 +105,24 @@ fi
 }
 
 help() {
-	echo "gensum 1.2 (3/14/2015), powerful checksums generator!"
+	echo "gensum $version, powerful multi file, multi checksum generator."
 	echo "Copyright(C) 2015 sten_gun, Nhoya"
 	echo ""
-	echo "Usage: gensum [options] [files]"
+	echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
 	echo ""
-	echo "Available Options:"
-	echo "-m 						Uses MD5 checksum"
-	echo "-s [1|256|all] 			Uses SHA1|SHA256 or both checksums"
-	echo "-c 						Uses CRC checksum"
-	echo "-d <directory> 			Calculate checksum for each file in a directory"
-	echo "-z <archive> 				Calculate checksum for archive and each file in it"
-	echo "-t <string>				Calculate checksum for string"
-	echo "-v 						Display version"
-	echo "-h 						Display this page"
+	echo "  Available Options:"
+	echo "    -m                        Uses MD5 checksum"
+	echo "    -s [1|256|all]            Uses SHA1|SHA256 or both checksums"
+	echo "    -k                        Uses CRC checksum"
+	echo "    -d <directory>            Calculate checksum for each file in a directory"
+	echo "    -z <archive>              Calculate checksum for archive and each file in it"
+	echo "    -t                        Calculate checksum for strings instead of files (put string as arg)"
+	echo "    -v                        Display script version"
+	echo "    -h                        Display this page"
 }
 #---------------------------------------------------- Script Start
 
-while getopts ":as:mhvk:" opt; do
+while getopts ":z:d:as:mhvtk" opt; do
     case "$opt" in
         h)  help
             exit 0
@@ -112,9 +131,11 @@ while getopts ":as:mhvk:" opt; do
         ;;
         m) MD5=1
         ;;
-	k) CK=1
-	;;
-        :) echo "-$OPTARG need param: 256 / 1 / all"
+	    k) CK=1
+	    ;;
+        t) STR=1
+        ;;
+        :) echo -e $RED"-$OPTARG parameter is mandatory: [256| 1 |all]"$FINE
         ;;
 	v) echo $version
 		exit 0
@@ -129,31 +150,58 @@ if ! [ -v SHA ] && ! [ -v MD5 ]  && ! [ -v CK ]; then
 fi
 
 OPTIND=1
-while getopts ":z:d:t:kas:mhv" opt; do
+while getopts ":z:d:as:mhvtk" opt; do
     case "$opt" in
-      z) echo "Checking archive $OPTARG"
+      z) echo -e $BOLD"Checking archive $OPTARG"$FINE
+      spacer
       archive $OPTARG
       ;;
-      d) echo "Checking directory $OPTARG"
+      d) echo -e $BOLD"Checking directory $OPTARG"$FINE
+      spacer
       checksum_cascade $OPTARG
       ;;
-      t) string_sum $OPTARG
-      ;;
-      \?) echo "invalid option(s): -$OPTARG"
+      \?) echo -e $RED"invalid option(s): -$OPTARG"$FINE
           exit 1
       ;;
-      :) echo "-$OPTARG needs argument(s)"
+      :) echo -e $RED"-$OPTARG needs argument(s)"$FINE
          exit 1
       ;;
     esac
 done
 
-echo "Checking given files"
+if test -v STR; then
+    for str in ${@:$OPTIND}; do
+        strings="$strings $str"
+    done
+    if [ -v strings ]; then
+        echo -e $BOLD"String Checksum"$FINE
+	spacer
+        strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        echo -e $YELLOW"==> "$FINE$GREEN$strings$FINE
+        string_sum "$strings"
+    else
+        echo -e $RED"Error: empty string"$FINE
+        exit 1
+    fi
+    exit 0
+fi
+
+r=0
 for file in ${@:$OPTIND}; do
+    if [ $r == 0 ] ; then
+    echo -e $BOLD"Checking given files"$FINE
+    spacer
+    r=$(($r+1))
+    fi
+    if [ -d $file ]; then
+        continue
+    fi
     if [ -e $file ]; then
         checksum $file
     else
-        echo "$file: file  doesn't exist"
+
+        echo -e $RED"$file: file  doesn't exist"$FINE
+	spacer
     fi
 done
 
