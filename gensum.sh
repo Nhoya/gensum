@@ -35,6 +35,7 @@ checksum() {
 	fi
         echo ""
 }
+
 string_sum() {
 	if test -v MD5 ; then
             echo "md5: $(echo -n "$1" | md5sum )"
@@ -103,7 +104,7 @@ help() {
 }
 #---------------------------------------------------- Script Start
 
-while getopts ":as:mhvk:" opt; do
+while getopts ":as:mhvtk" opt; do
     case "$opt" in
         h)  help
             exit 0
@@ -112,8 +113,10 @@ while getopts ":as:mhvk:" opt; do
         ;;
         m) MD5=1
         ;;
-	k) CK=1
-	;;
+	    k) CK=1
+	    ;;
+        t) STR=1
+        ;;
         :) echo "-$OPTARG need param: 256 / 1 / all"
         ;;
 	v) echo $version
@@ -129,15 +132,13 @@ if ! [ -v SHA ] && ! [ -v MD5 ]  && ! [ -v CK ]; then
 fi
 
 OPTIND=1
-while getopts ":z:d:t:kas:mhv" opt; do
+while getopts ":z:d:kas:mhvt" opt; do
     case "$opt" in
       z) echo "Checking archive $OPTARG"
       archive $OPTARG
       ;;
       d) echo "Checking directory $OPTARG"
       checksum_cascade $OPTARG
-      ;;
-      t) string_sum $OPTARG
       ;;
       \?) echo "invalid option(s): -$OPTARG"
           exit 1
@@ -147,7 +148,19 @@ while getopts ":z:d:t:kas:mhv" opt; do
       ;;
     esac
 done
-
+if test -v STR; then
+    if  [ -v CK ] && ! [ -v MD5 ] && ! [ -v SHA ]; then
+        echo "Error: you can't calculate CRC on strings"
+        exit 1
+    fi
+    for str in ${@:$OPTIND}; do
+        strings="$strings $str"
+    done
+    strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//')
+    echo "$strings"
+    string_sum "$strings"
+    exit 0
+fi
 echo "Checking given files"
 for file in ${@:$OPTIND}; do
     if [ -e $file ]; then
