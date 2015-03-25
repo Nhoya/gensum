@@ -14,7 +14,8 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
-
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
 version="1.3 (3/23/15)"
 # For text colour
@@ -216,5 +217,6 @@ for file in ${@:$OPTIND}; do
                 spacer
         fi
 done
+IFS=$SAVEIFS
 
 exit 0
