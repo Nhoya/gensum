@@ -14,6 +14,7 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
@@ -120,11 +121,12 @@ archive() {
 }
 
 help() {
-        echo "gensum $version, powerful multi file, multi checksum generator."
+        echo -e "gensum $YELLOW $BOLD$version$FINE, powerful multi file, multi checksum generator."
         echo "Copyright(C) 2015 sten_gun, Nhoya"
         echo ""
         echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
-        echo ""
+	echo ""
+	echo -e $GREEN"=============================================================================================="$FINE
         echo "  Available Options:"
         echo "    -m                        Uses MD5 checksum"
         echo "    -s [1|256|all]            Uses SHA1|SHA256 or both checksums"
@@ -134,8 +136,12 @@ help() {
         echo "    -t                        Calculate checksum for strings instead of files (put string as arg)"
         echo "    -v                        Display script version"
         echo "    -h                        Display this page"
+	echo -e $GREEN"============================================================================================="$FINE
 }
 #---------------------------------------------------- Script Start
+if [ "$1" == "" ]
+	then help
+fi
 
 while getopts ":z:d:as:mhvtk" opt; do
         case "$opt" in
@@ -218,5 +224,4 @@ for file in ${@:$OPTIND}; do
         fi
 done
 IFS=$SAVEIFS
-
 exit 0
