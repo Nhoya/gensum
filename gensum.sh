@@ -18,7 +18,7 @@
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
-version="1.3 (3/23/15)"
+version="1.4β (3/30/15)"
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
@@ -36,7 +36,6 @@ spacer() {
                 strn="$strn $st"
                 done
                 echo -e $YELLOW"=========================================================="$FINE
-                tput cuu 1
                 printf %b $YELLOW"==> $FINE$BOLD$strn $FINE\n"
         fi
 }
@@ -53,15 +52,29 @@ checksum() {
                         echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(sha1sum $1 | awk '{print$1}')"
                         r=$(($r+1))
                 fi
+		if [ "$SHA" == "all" ] & [ "$SHA" == "224" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha224:$FINE  $(sha224sum $1 | awk '{print$1}')"
+                        r=$(($r+1))
+		fi
                 if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
                         echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(sha256sum  $1 | awk '{print$1}')"
                         r=$(($r+1))
                 fi
-        fi
-        if test -v CK ; then
+		if  [ "$SHA" == "all" ] & [ "$SHA" == "384" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha384:$FINE  $(sha384sum $1 | awk '{print$1}')"
+                        r=$(($r+1))
+                fi
+
+		if [ "$SHA" == "all" ] & [ "$SHA" == "512" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha512:$FINE $(sha512sum  $1 | awk '{print$1}')"
+                        r=$(($r+1))
+		fi
+	fi
+
+		if test -v CK ; then
                 echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $(cksum $1 |awk '{print$1,$2}')"
                 r=$(($r+1))
-        fi
+		fi
         spacer
 }
 
@@ -77,10 +90,25 @@ string_sum() {
                         echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum |awk '{print$1}')"
                         r=$(($r+1))
                 fi
+		if [ "$SHA" == "all" ] & [ "$SHA" == "224" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha224:$FINE $(echo -n "$1" | sha224sum |awk '{print$1}')"
+                        r=$(($r+1))
+                fi
+
                 if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
                         echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum |awk '{print$1}')"
                         r=$(($r+1))
                 fi
+		if [ "$SHA" == "all" ] & [ "$SHA" == "384" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha384:$FINE $(echo -n "$1" | sha384sum |awk '{print$1}')"
+                        r=$(($r+1))
+                fi
+
+		if [ "$SHA" == "all" ] & [ "$SHA" == "512" ]; then
+                        echo -e "$BLUE$r)$FINE "$BOLD"sha512:$FINE $(echo -n "$1" | sha512sum |awk '{print$1}')"
+                        r=$(($r+1))
+                fi
+
         fi
         spacer
 }
@@ -128,14 +156,14 @@ help() {
 	echo ""
 	echo -e $GREEN"=============================================================================================="$FINE
         echo "  Available Options:"
-        echo "    -m                        Uses MD5 checksum"
-        echo "    -s [1|256|all]            Uses SHA1|SHA256 or both checksums"
-        echo "    -k                        Uses CRC checksum"
-        echo "    -d <directory>            Calculate checksum for each file in a directory"
-        echo "    -z <archive>              Calculate checksum for archive and each file in it"
-        echo "    -t                        Calculate checksum for strings instead of files (put string as arg)"
-        echo "    -v                        Display script version"
-        echo "    -h                        Display this page"
+        echo "    -m              		        Uses MD5 checksum"
+        echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|512 or both checksums"
+        echo "    -k                        		Uses CRC checksum"
+        echo "    -d <directory>            		Calculate checksum for each file in a directory"
+        echo "    -z <archive>              		Calculate checksum for archive and each file in it"
+        echo "    -t                       	 	Calculate checksum for strings instead of files (put string as arg)"
+        echo "    -v                        		Display script version"
+        echo "    -h                        		Display this page"
 	echo -e $GREEN"============================================================================================="$FINE
 }
 #---------------------------------------------------- Script Start
@@ -156,9 +184,9 @@ while getopts ":z:d:as:mhvtk" opt; do
             ;;
             t) STR=1
             ;;
-            :) echo -e $RED"-$OPTARG parameter is mandatory: [256| 1 |all]"$FINE
+            :) echo -e $RED"-$OPTARG parameter is mandatory: [1| 224| 256| 384| 512 |all]"$FINE;
             ;;
-        v) echo $version
+	    v) echo $version
             exit 0
         ;;
         esac
