@@ -14,11 +14,12 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
-
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
-version="1.4β (3/30/15)"
+version="1.4"
+date="(3/30/2015)"
+bt="β"
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
@@ -149,7 +150,7 @@ archive() {
 }
 
 help() {
-        echo -e "gensum $YELLOW $BOLD$version$FINE, powerful multi file, multi checksum generator."
+        echo -e "gensum $YELLOW$BOLD$version$FINE$RED$bt$FINE$YELLOW$BOLD$date$FINE, powerful multi file, multi checksum generator."
         echo "Copyright(C) 2015 sten_gun, Nhoya"
         echo ""
         echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
