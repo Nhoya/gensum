@@ -37,7 +37,8 @@ spacer() {
                 strn="$strn $st"
                 done
                 echo -e $YELLOW"=========================================================="$FINE
-                printf %b $YELLOW"==> $FINE$BOLD$strn $FINE\n"
+                tput cuu 1
+                printf %b $YELLOW"==> $FINE$BOLD$strn $FINE"$YELLOW"<\n"$FINE
         fi
 }
 
@@ -177,7 +178,15 @@ while getopts ":z:d:as:mhvtk" opt; do
             h)  help
                 exit 0
             ;;
-            s) SHA="$OPTARG"
+            s)
+                case "$OPTARG" in
+                1|224|256|384|512|"all")
+                    SHA="$OPTARG"
+                ;;
+                *)
+                echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE;
+                ;;
+                esac
             ;;
             m) MD5=1
             ;;
