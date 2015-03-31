@@ -184,7 +184,8 @@ while getopts ":z:d:as:mhvtk" opt; do
                     SHA="$OPTARG"
                 ;;
                 *)
-                echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE;
+                    echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE
+                    echo -e $YELLOW"Considering \"all\" argument."$FINE               
                 ;;
                 esac
             ;;
@@ -194,7 +195,7 @@ while getopts ":z:d:as:mhvtk" opt; do
             ;;
             t) STR=1
             ;;
-            :) echo -e $RED"-$OPTARG parameter is mandatory: [1| 224| 256| 384| 512 |all]"$FINE;
+            :) echo -e $RED"-$OPTARG parameter is mandatory: [1| 224| 256| 384| 512 |all]"$FINE
             ;;
 	    v) echo $version
             exit 0
