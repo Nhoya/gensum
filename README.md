@@ -24,4 +24,4 @@ HELP:
 	
 
 Known issue: 
-- Script doesn't work correctly with bash 4.3.x. We are working for fix this issue in the master version of 1.4 
+- Script doesn't work correctly with bash 4.3.x. We are working to fix this issue in the master version of 1.4 
