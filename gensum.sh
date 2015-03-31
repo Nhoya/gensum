@@ -154,19 +154,19 @@ help() {
         echo -e "gensum $YELLOW$BOLD$version$FINE$RED$bt$FINE$YELLOW$BOLD$date$FINE, powerful multi file, multi checksum generator."
         echo "Copyright(C) 2015 sten_gun, Nhoya"
         echo ""
-        echo "  Usage: $0 [OPTIONS] [ARGS ... ]"
+        echo -e $BOLD"  Usage: $0 [OPTIONS] [ARGS ... ]"$FINE
 	echo ""
-	echo -e $GREEN"=============================================================================================="$FINE
+	echo -e $GREEN"======================================================================================"$FINE
         echo "  Available Options:"
         echo "    -m              		        Uses MD5 checksum"
-        echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|512 or both checksums"
+        echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
         echo "    -k                        		Uses CRC checksum"
-        echo "    -d <directory>            		Calculate checksum for each file in a directory"
-        echo "    -z <archive>              		Calculate checksum for archive and each file in it"
-        echo "    -t                       	 	Calculate checksum for strings instead of files (put string as arg)"
+        echo "    -d <directory>            		Calculate checksum for files inside a directory."
+        echo "    -z <archive>              		Calculate checksum for an archive and its contents."
+        echo "    -t                       	 	Calculate checksum for strings instead of files."
         echo "    -v                        		Display script version"
         echo "    -h                        		Display this page"
-	echo -e $GREEN"============================================================================================="$FINE
+	echo -e $GREEN"======================================================================================"$FINE
 }
 #---------------------------------------------------- Script Start
 if [ "$1" == "" ]
