@@ -22,3 +22,6 @@ HELP:
 	-v                          Display script version
 
 	
+
+Known issue: 
+- Script doesn't work correctly with bash 4.3.x. We are working for fix this issue in the master version of 1.4 
