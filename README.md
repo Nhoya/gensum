@@ -22,3 +22,6 @@ HELP:
 	-v                          Display script version
 
 	
+
+Known issues: 
+- Archive function to rewrite
