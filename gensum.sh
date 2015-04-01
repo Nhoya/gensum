@@ -124,11 +124,23 @@ ask_del() {
                 ;;
                 *) echo -e  $YELLOW"Warning: temporary files saved in $TMPDIR"$FINE
                 ;;
-esac
+        esac
+}
+
+_exit() {
+    if [[ -d $TMPDIR ]]; then
+            ask_del 2>/dev/null
+    fi
+    exit $1
+}
+
+is_archive() {
+    (file "$1" | grep 'compressed\|archive') > /dev/null
+    return $?
 }
 
 checksum_cascade() {
-        if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz'); then
+        if 	is_archive $1; then
                 archive $1
         elif [[ -d $1 ]]; then
                 for file in $1/*; do
@@ -140,13 +152,17 @@ checksum_cascade() {
 }
 
 archive() {
-        if 	(file $1 |awk -F . '{print$NF}' |grep 'zip\|rar\|7z\|tar\|gz\|bz')
+        if 	is_archive $1
         then
-                mkdir $TMPDIR
-                unar -o $TMPDIR $1
+                if ! [[ -d $TMPDIR ]] ; then
+                        mkdir $TMPDIR
+                fi
+                FPATH=$(unar -q -r -o $TMPDIR $1 | grep 'extracted\ to' | awk -F \" '{print$2}')
                 checksum $1 2>/dev/null
-                checksum_cascade $TMPDIR
-                ask_del 2>/dev/null
+                checksum_cascade $FPATH
+        else
+            echo $1 " is not an archive."
+            spacer
         fi
 }
 
@@ -176,7 +192,7 @@ fi
 while getopts ":z:d:as:mhvtk" opt; do
         case "$opt" in
             h)  help
-                exit 0
+                _exit 0
             ;;
             s)
                 case "$OPTARG" in
@@ -198,7 +214,7 @@ while getopts ":z:d:as:mhvtk" opt; do
             :) echo -e $RED"-$OPTARG parameter is mandatory: [1| 224| 256| 384| 512 |all]"$FINE
             ;;
 	    v) echo $version
-            exit 0
+            _exit 0
         ;;
         esac
 done
@@ -221,10 +237,10 @@ while getopts ":z:d:as:mhvtk" opt; do
       checksum_cascade $OPTARG
       ;;
       \?) echo -e $RED"invalid option(s): -$OPTARG"$FINE
-          exit 1
+          _exit 1
       ;;
       :) echo -e $RED"-$OPTARG needs argument(s)"$FINE
-         exit 1
+         _exit 1
       ;;
     esac
 done
@@ -240,9 +256,9 @@ done
                 string_sum "$strings"
         else
                 echo -e $RED"Error: empty string"$FINE
-                exit 1
+                _exit 1
         fi
-        exit 0
+        _exit 0
 fi
 
 r=0
@@ -263,4 +279,4 @@ for file in ${@:$OPTIND}; do
         fi
 done
 IFS=$SAVEIFS
-exit 0
+_exit 0
