@@ -51,16 +51,25 @@ spacer() {
 #If necessary compares the generated checksum with a list of checksums given as file.
 comparesum() {
     printf %b $BLUE"$3) "$FINE$BOLD"$(echo "$1" | sed 's/sum//'): "$FINE
+    case "$1" in
+        "cksum") local parms='{print$1,$2}'
+        ;;
+        *)
+        local parms='{print$1}'
+        ;;
+    esac
     if ! test -v STR; then
-        local csum=$($1 $2 |awk '{print$1}')
+        local csum=$($1 $2 | awk $parms)
     else
-        local csum=$(echo -n "$2" | $1 |awk '{print$1}')
+        local csum=$(echo -n "$2" | $1 | awk $parms)
     fi
     if test -v CHKSUMS; then
         (grep $csum $CHKSUMS) > /dev/null
         if [ "$?" == "0" ]; then
+            csum="$csum OK!"
             printf %b $GREEN
         else
+            csum="$csum ERRATO!"
             printf %b $RED
         fi
     else
@@ -184,7 +193,7 @@ help() {
         echo "    -k                        		Uses CRC checksum"
         echo "    -d <directory>            		Calculate checksum for files inside a directory."
         echo "    -z <archive>              		Calculate checksum for an archive and its contents."
-        echo "    -t                       	 	Calculate checksum for strings instead of files."
+        echo "    -t <string>                	 	Calculate checksum for strings instead of files."
         echo "    -v                        		Display script version"
         echo "    -h                        		Display this page"
 	echo -e $GREEN"======================================================================================"$FINE
@@ -196,7 +205,6 @@ argsparser() {
     if [ "$#" == "0" ]
         then help
     fi
-
     while getopts ":z:d:as:mhvtkc:" opt; do
             case "$opt" in
                 h)  help
@@ -225,7 +233,19 @@ argsparser() {
                 ;;
                 k) CK=1
                 ;;
-                t) STR=1
+                t) 
+                    for str in ${@:$OPTIND}; do
+                            STR="$STR $str"
+                    done
+                    if [ -v STR ]; then
+                            echo -e $BOLD"String Checksum"$FINE
+                            spacer
+                            STR=$(echo -e "$STR" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                    else
+                            echo -e $RED"Error: empty string"$FINE
+                            _exit 1
+                    fi
+                    break
                 ;;
                 :) echo -e $RED"-$OPTARG parameter is mandatory."$FINE
                     _exit 1
@@ -241,7 +261,9 @@ argsparser() {
             MD5=1
             CK=1
     fi
-
+    if ! [ -v STR ]; then
+        return
+    fi
     OPTIND=1
     while getopts ":z:d:as:mhvtkc:" opt; do
         case "$opt" in
@@ -277,18 +299,8 @@ done
 #Main logic
 main(){
     if test -v STR; then
-        for str in ${@:$OPTIND}; do
-                strings="$strings $str"
-        done
-        if [ -v strings ]; then
-                echo -e $BOLD"String Checksum"$FINE
-                spacer
-                strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-                checksum "$strings"
-        else
-                echo -e $RED"Error: empty string"$FINE
-                _exit 1
-        fi
+        checksum "$STR"
+        _exit 0
     else
         r=0
         for file in ${@:$OPTIND}; do
