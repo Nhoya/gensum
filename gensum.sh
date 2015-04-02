@@ -19,7 +19,6 @@ IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
 version="1.5"
 date="(02/04/2015)"
-bt=""
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
@@ -181,7 +180,7 @@ archive() {
 
 #Usage screen.
 help() {
-        echo -e "gensum $YELLOW$BOLD$version$FINE$RED$bt$FINE$YELLOW$BOLD$date$FINE, powerful multi file, multi checksum generator."
+        echo -e "gensum $YELLOW$BOLD$version$FINE$YELLOW$BOLD$date$FINE, powerful multi file, multi checksum generator."
         echo "Copyright(C) 2015 sten_gun, Nhoya"
         echo ""
         echo -e $BOLD"  Usage: $0 [OPTIONS] [ARGS ... ]"$FINE
@@ -190,7 +189,7 @@ help() {
         echo "  Available Options:"
         echo "    -m              		        Uses MD5 checksum"
         echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
-	echo "	  -c <checfile> <file>			Specifies a file for checksum check"
+	echo "    -c <checfile> <file>		Specifies a file for checksum check"
         echo "    -k                        		Uses CRC checksum"
         echo "    -d <directory>            		Calculate checksum for files inside a directory."
         echo "    -z <archive>              		Calculate checksum for an archive and its contents."
@@ -225,9 +224,9 @@ argsparser() {
                     1|224|256|384|512|"all")
                         SHA="$OPTARG"
                     ;;
-                    *)
-                        echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE
-                        _exit 1
+               		*)
+                	echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE
+                	_exit 1
                     ;;
                     esac
                 ;;
@@ -253,7 +252,7 @@ argsparser() {
                 :) echo -e $RED"-$OPTARG parameter is mandatory."$FINE
                     _exit 1
                 ;;
-                v) echo $version$bt $date
+                v) echo $version$ $date
                     _exit 0
                 ;;
             esac
