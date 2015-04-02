@@ -202,10 +202,11 @@ help() {
 #==== Main logic functions ====
 #Argument parser.
 argsparser() {
+    p=0 #counter of checksum_cascade.
     if [ "$#" == "0" ]
         then help
     fi
-    while getopts ":z:d:as:mhvtkc:" opt; do
+    while getopts ":z:d:s:mhvtkc:" opt; do
             case "$opt" in
                 h)  help
                     _exit 0
@@ -225,11 +226,12 @@ argsparser() {
                     ;;
                     *)
                         echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE
-                        echo -e $YELLOW"Generating all sha checksums."$FINE               
+                        _exit 1
                     ;;
                     esac
                 ;;
                 m) MD5=1
+                unset STR
                 ;;
                 k) CK=1
                 ;;
@@ -261,16 +263,17 @@ argsparser() {
             MD5=1
             CK=1
     fi
-    
-    if ! [ -z STR ]; then
+    if ! test -z $STR ; then
         return
     fi
-    
     OPTIND=1
-    while getopts ":z:d:as:mhvtkc:" opt; do
+    while getopts "z:d:s:mhvtkc:" opt; do
         case "$opt" in
           z) if is_archive $OPTARG; then
                 echo -e $BOLD"Checking archive $OPTARG"$FINE
+                p=1
+                spacer
+                checksum_cascade $OPTARG
             else
                 echo -e $RED"-z: $OPTARG is not an archive file."$FINE
                 _exit 1
@@ -278,6 +281,9 @@ argsparser() {
           ;;
           d) if [[ -d $OPTARG ]]; then
                 echo -e $BOLD"Checking directory $OPTARG"$FINE
+                p=1
+                spacer
+                checksum_cascade $OPTARG
             else
                 echo -e $RED"-d: $OPTARG is not a directory."$FINE
                 _exit 1
@@ -289,12 +295,7 @@ argsparser() {
           :) echo -e $RED"-$OPTARG needs argument(s)"$FINE
              _exit 1
           ;;
-          *) 
-            continue
-          ;;
         esac
-        spacer
-        checksum_cascade $OPTARG
 done
 }
 
@@ -321,6 +322,10 @@ main(){
                     spacer
             fi
         done
+    fi
+    if [ "$r" == "0" ] && [ "$p" == "0" ]; then
+        echo -e $RED"Error: missing arguments."$FINE
+        _exit 1
     fi
 }
 #---------------------------------------------------- Script Start
