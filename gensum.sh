@@ -82,7 +82,7 @@ checksum() {
                         comparesum sha1sum $1 $r
                         r=$(($r+1))
                 fi
-                if [ "$SHA" == "all" ] || [ "$SHA" == "224" ]; then
+                if [ "$SHA" == "all" ] & [ "$SHA" == "224" ]; then
                         comparesum sha224sum $1 $r
                         r=$(($r+1))
                 fi
@@ -90,11 +90,11 @@ checksum() {
                         comparesum sha256sum $1 $r
                         r=$(($r+1))
                 fi
-                if  [ "$SHA" == "all" ] || [ "$SHA" == "384" ]; then
+                if  [ "$SHA" == "all" ] & [ "$SHA" == "384" ]; then
                         comparesum sha384sum $1 $r
                         r=$(($r+1))
                 fi
-                if [ "$SHA" == "all" ] || [ "$SHA" == "512" ]; then
+                if [ "$SHA" == "all" ] & [ "$SHA" == "512" ]; then
                         comparesum sha512sum $1 $r
                         r=$(($r+1))
                 fi
