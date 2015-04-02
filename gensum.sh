@@ -261,9 +261,11 @@ argsparser() {
             MD5=1
             CK=1
     fi
-    if ! [ -v STR ]; then
+    
+    if ! [ -z STR ]; then
         return
     fi
+    
     OPTIND=1
     while getopts ":z:d:as:mhvtkc:" opt; do
         case "$opt" in
