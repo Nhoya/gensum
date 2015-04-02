@@ -17,8 +17,8 @@
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
-version="1.4"
-date="(3/30/2015)"
+version="1.5"
+date="(02/04/2015)"
 bt=""
 # For text colour
 readonly RED="\033[01;31m"
@@ -45,78 +45,67 @@ spacer() {
         fi
 }
 
+#Generates a checksum for a file or a string. You can specify the program as first argument.
+#Second argument is the file/ string of which we want to generate the digest
+#the third argument is the index of the entry.
+#If necessary compares the generated checksum with a list of checksums given as file.
+comparesum() {
+    printf %b $BLUE"$3) "$FINE$BOLD"$(echo "$1" | sed 's/sum//'): "$FINE
+    if ! test -v STR; then
+        local csum=$($1 $2 |awk '{print$1}')
+    else
+        local csum=$(echo -n "$2" | $1 |awk '{print$1}')
+    fi
+    if test -v CHKSUMS; then
+        (grep $csum $CHKSUMS) > /dev/null
+        if [ "$?" == "0" ]; then
+            printf %b $GREEN
+        else
+            printf %b $RED
+        fi
+    else
+        printf %b $BOLD
+    fi
+    printf %b $csum$FINE"\n"
+}
+
 #Calculates checksum for given argument. The argument must be a file.
 checksum() {
         spacer $1
         local r=1
         if test -v MD5 ; then
-               echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(md5sum $1 | awk '{print$1}')"
-               r=$(($r+1))
+                comparesum md5sum $1 $r
+                r=$(($r+1))
         fi
         if test -v SHA ; then
                 if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(sha1sum $1 | awk '{print$1}')"
+                        comparesum sha1sum $1 $r
                         r=$(($r+1))
                 fi
-		if [ "$SHA" == "all" ] & [ "$SHA" == "224" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha224:$FINE  $(sha224sum $1 | awk '{print$1}')"
+                if [ "$SHA" == "all" ] || [ "$SHA" == "224" ]; then
+                        comparesum sha224sum $1 $r
                         r=$(($r+1))
-		fi
+                fi
                 if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(sha256sum  $1 | awk '{print$1}')"
+                        comparesum sha256sum $1 $r
                         r=$(($r+1))
                 fi
-		if  [ "$SHA" == "all" ] & [ "$SHA" == "384" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha384:$FINE  $(sha384sum $1 | awk '{print$1}')"
+                if  [ "$SHA" == "all" ] || [ "$SHA" == "384" ]; then
+                        comparesum sha384sum $1 $r
                         r=$(($r+1))
                 fi
-
-		if [ "$SHA" == "all" ] & [ "$SHA" == "512" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha512:$FINE $(sha512sum  $1 | awk '{print$1}')"
+                if [ "$SHA" == "all" ] || [ "$SHA" == "512" ]; then
+                        comparesum sha512sum $1 $r
                         r=$(($r+1))
-		fi
-	fi
+                fi
+        fi
 
 		if test -v CK ; then
-                echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $(cksum $1 |awk '{print$1,$2}')"
+                #csum=$(cksum $1 |awk '{print$1,$2}')
+                #echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $csum"
+                comparesum cksum $1 $r
                 r=$(($r+1))
 		fi
-        spacer
-}
-
-#Calculates checksum for given argument. The argument must be a string.
-string_sum() {
-        spacer $1
-        local r=1
-        if test -v MD5 ; then
-                echo -e "$BLUE$r)$FINE "$BOLD"md5:$FINE $(echo -n "$1" | md5sum |awk '{print$1}')"
-                r=$(($r+1))
-        fi
-        if test -v SHA ; then
-                if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha1:$FINE  $(echo -n "$1" | sha1sum |awk '{print$1}')"
-                        r=$(($r+1))
-                fi
-		if [ "$SHA" == "all" ] & [ "$SHA" == "224" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha224:$FINE $(echo -n "$1" | sha224sum |awk '{print$1}')"
-                        r=$(($r+1))
-                fi
-
-                if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha256:$FINE $(echo -n "$1" | sha256sum |awk '{print$1}')"
-                        r=$(($r+1))
-                fi
-		if [ "$SHA" == "all" ] & [ "$SHA" == "384" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha384:$FINE $(echo -n "$1" | sha384sum |awk '{print$1}')"
-                        r=$(($r+1))
-                fi
-
-		if [ "$SHA" == "all" ] & [ "$SHA" == "512" ]; then
-                        echo -e "$BLUE$r)$FINE "$BOLD"sha512:$FINE $(echo -n "$1" | sha512sum |awk '{print$1}')"
-                        r=$(($r+1))
-                fi
-
-        fi
         spacer
 }
 
@@ -208,10 +197,18 @@ argsparser() {
         then help
     fi
 
-    while getopts ":z:d:as:mhvtk" opt; do
+    while getopts ":z:d:as:mhvtkc:" opt; do
             case "$opt" in
                 h)  help
                     _exit 0
+                ;;
+                c) (file $OPTARG | grep "ASCII\ text") > /dev/null
+                    if [ "$?" == "0" ]; then
+                        CHKSUMS=$OPTARG
+                    else
+                        echo -e $RED"-$opt: $OPTARG is not a text file."$FINE
+                        _exit 0
+                    fi
                 ;;
                 s)
                     case "$OPTARG" in
@@ -220,7 +217,7 @@ argsparser() {
                     ;;
                     *)
                         echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE
-                        echo -e $YELLOW"Considering \"all\" argument."$FINE               
+                        echo -e $YELLOW"Generating all sha checksums."$FINE               
                     ;;
                     esac
                 ;;
@@ -230,11 +227,12 @@ argsparser() {
                 ;;
                 t) STR=1
                 ;;
-                :) echo -e $RED"-$OPTARG parameter is mandatory: [1| 224| 256| 384| 512 |all]"$FINE
+                :) echo -e $RED"-$OPTARG parameter is mandatory."$FINE
+                    _exit 1
                 ;;
-            v) echo $version$bt $date
-                _exit 0
-            ;;
+                v) echo $version$bt $date
+                    _exit 0
+                ;;
             esac
     done
 
@@ -245,7 +243,7 @@ argsparser() {
     fi
 
     OPTIND=1
-    while getopts ":z:d:as:mhvtk" opt; do
+    while getopts ":z:d:as:mhvtkc:" opt; do
         case "$opt" in
           z) if is_archive $OPTARG; then
                 echo -e $BOLD"Checking archive $OPTARG"$FINE
@@ -286,12 +284,11 @@ main(){
                 echo -e $BOLD"String Checksum"$FINE
                 spacer
                 strings=$(echo -e "$strings" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-                string_sum "$strings"
+                checksum "$strings"
         else
                 echo -e $RED"Error: empty string"$FINE
                 _exit 1
         fi
-        _exit 0
     else
         r=0
         for file in ${@:$OPTIND}; do
