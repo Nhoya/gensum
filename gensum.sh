@@ -87,23 +87,23 @@ checksum() {
                 r=$(($r+1))
         fi
         if test -v SHA ; then
-                if [ "$SHA" == "all" ] || [ "$SHA" == "1" ]; then
+                if [ "$SHA" == "basic" ] || [ "$SHA" == "1" ] || [ "$SHA" == "all" ]; then
                         comparesum sha1sum $1 $r
                         r=$(($r+1))
                 fi
-                if [ "$SHA" == "all" ] & [ "$SHA" == "224" ]; then
+                if [ "$SHA" == "all" ] || [ "$SHA" == "224" ]; then
                         comparesum sha224sum $1 $r
                         r=$(($r+1))
                 fi
-                if [ "$SHA" == "all" ] || [ "$SHA" == "256" ]; then
+                if [ "$SHA" == "basic" ] || [ "$SHA" == "256" ] || [ "$SHA" == "all" ] ; then
                         comparesum sha256sum $1 $r
                         r=$(($r+1))
                 fi
-                if  [ "$SHA" == "all" ] & [ "$SHA" == "384" ]; then
+                if  [ "$SHA" == "all" ] || [ "$SHA" == "384" ]; then
                         comparesum sha384sum $1 $r
                         r=$(($r+1))
                 fi
-                if [ "$SHA" == "all" ] & [ "$SHA" == "512" ]; then
+                if [ "$SHA" == "all" ] || [ "$SHA" == "512" ]; then
                         comparesum sha512sum $1 $r
                         r=$(($r+1))
                 fi
@@ -190,6 +190,7 @@ help() {
         echo "  Available Options:"
         echo "    -m              		        Uses MD5 checksum"
         echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
+	echo "	  -c <checfile> <file>			Specifies a file for checksum check"
         echo "    -k                        		Uses CRC checksum"
         echo "    -d <directory>            		Calculate checksum for files inside a directory."
         echo "    -z <archive>              		Calculate checksum for an archive and its contents."
@@ -259,7 +260,7 @@ argsparser() {
     done
 
     if ! [ -v SHA ] && ! [ -v MD5 ]  && ! [ -v CK ]; then
-            SHA="all"
+            SHA="basic"
             MD5=1
             CK=1
     fi
