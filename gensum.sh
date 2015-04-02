@@ -213,7 +213,7 @@ while getopts ":z:d:as:mhvtk" opt; do
             ;;
             :) echo -e $RED"-$OPTARG parameter is mandatory: [1| 224| 256| 384| 512 |all]"$FINE
             ;;
-	    v) echo $version
+	    v) echo $version$bt $date
             _exit 0
         ;;
         esac
@@ -280,3 +280,4 @@ for file in ${@:$OPTIND}; do
 done
 IFS=$SAVEIFS
 _exit 0
+
