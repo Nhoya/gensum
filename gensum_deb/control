@@ -10,4 +10,4 @@ Package: gensum
 Architecture: all
 Depends: unar
 Description: Powerful checksums generator!
-Gensum is a bash script created with the intent to speed up the work of any forensic Analyst. It recursively generates checksums (SHA1, SHA256, MD5 and CRC) starting from archives (and its contents), folders, files and even strings!
+Gensum is a bash script created with the intent to speed up the work of any forensic Analyst. It recursively generates checksums (SHA1, SHA224, SHA256,SHA 384, SHA 512, MD5 and CRC) starting from archives (and its contents), folders, files and even strings!
