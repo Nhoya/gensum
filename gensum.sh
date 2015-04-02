@@ -19,7 +19,7 @@ IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/genchecksum
 version="1.4"
 date="(3/30/2015)"
-bt="β"
+bt=""
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
