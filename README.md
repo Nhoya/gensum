@@ -8,7 +8,6 @@ Additional dependencies: unar
 
 HELP:
 	gensum 1.5 (03/04/2015), powerful multi file, multi checksum generator.
-	
 	Copyright(C) 2015 sten_gun, Nhoya  
 	
 	Usage: gensum.sh [options] file(s)
