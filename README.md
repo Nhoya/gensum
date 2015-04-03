@@ -7,16 +7,19 @@ It recursively generates checksums (SHA1,SHA224, SHA256, SHA384,SHA512 MD5 and C
 Additional dependencies: unar
 
 HELP:
-	gensum 1.4 (02/04/2015), powerful multi file, multi checksum generator.
+	gensum 1.5 (03/04/2015), powerful multi file, multi checksum generator.
 	Copyright(C) 2015 sten_gun, Nhoya  
 	
 	Usage: gensum.sh [options] file(s)
 	
 	Available Options:
-	-m                          Uses MD5 checksum
-	-s [1|224|256|384|512|all]              Uses SHA1|SHA256 or both checksums
-	-k                          Uses CRC checksum
-	-d <directory>              Calculate checksum for each file in a directory
-	-z <archive>                Calculate checksum for archive and each file in it
-	-t                          Calculate checksum for strings instead of files (put string as arg)
-	-v                          Display script version
+	-m              		        Uses MD5 checksum
+    	-s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all.
+    	-c <checfile> <file>		Specifies a file for checksum check
+    	-k                        		Uses CRC checksum
+    	-d <directory>            		Calculate checksum for files inside a directory.
+    	-z <archive>              		Calculate checksum for an archive and its contents.
+    	-t <string>                	 	Calculate checksum for strings instead of files.
+    	-v                        		Display script version
+    	-h                        		Display this page
+
