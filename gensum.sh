@@ -49,7 +49,7 @@ spacer() {
 #the third argument is the index of the entry.
 #If necessary compares the generated checksum with a list of checksums given as file.
 comparesum() {
-    printf %b $BLUE"$3) "$FINE$BOLD"$(echo "$1" | sed 's/sum//'): "$FINE
+    printf %b $BLUE"$3) "$FINE$BOLD"${1/sum//}: "$FINE
     case "$1" in
         "cksum") local parms='{print$1,$2}'
         ;;
@@ -203,7 +203,7 @@ help() {
 #Argument parser.
 argsparser() {
     urlregex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
-    p=0 #counter of checksum_cascade.
+    #p=0 #counter of checksum_cascade.
     if [ "$#" == "0" ]
         then help
     fi
@@ -217,10 +217,10 @@ argsparser() {
                         if ! [ -d $TMPDIR ]; then
                             mkdir $TMPDIR
                         fi
-                        wget $OPTARG -O $TMPDIR/tmpsum -q --show-progress
+                        wget $OPTARG -O $TMPDIR/${OPTARG##*/} -q --show-progress
                         tput cuu 1
                         tput el
-                        OPTARG=$TMPDIR/tmpsum
+                        OPTARG=$TMPDIR/${OPTARG##*/}
                     fi
                     (file $OPTARG | grep "ASCII\ text") > /dev/null
                     if [ "$?" == "0" ]; then
@@ -282,7 +282,7 @@ argsparser() {
         case "$opt" in
           z) if is_archive $OPTARG; then
                 echo -e $BOLD"Checking archive $OPTARG"$FINE
-                p=1
+                p=${p:=1}
                 spacer
                 checksum_cascade $OPTARG
             else
@@ -292,7 +292,7 @@ argsparser() {
           ;;
           d) if [[ -d $OPTARG ]]; then
                 echo -e $BOLD"Checking directory $OPTARG"$FINE
-                p=1
+                p=${p:=1}
                 spacer
                 checksum_cascade $OPTARG
             else
@@ -334,7 +334,7 @@ main(){
             fi
         done
     fi
-    if [ "$r" == "0" ] && [ "$p" == "0" ]; then
+    if [ "$r" == "0" ] && [ "${p:-0}" == "0" ]; then
         echo -e $RED"Error: missing arguments."$FINE
         _exit 1
     fi
