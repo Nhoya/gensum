@@ -16,7 +16,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
-TMPDIR=/tmp/genchecksum
+TMPDIR=/tmp/gensum
 version="1.5"
 date="(02/04/2015)"
 # For text colour
