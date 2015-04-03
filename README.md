@@ -13,7 +13,8 @@ HELP:
 	Usage: gensum.sh [options] file(s)
 	
 	Available Options:
-	-m              		        Uses MD5 checksum
+	
+        -m              		        Uses MD5 checksum
     	-s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all.
     	-c <checfile> <file>		Specifies a file for checksum check
     	-k                        		Uses CRC checksum
