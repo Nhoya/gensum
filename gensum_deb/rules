@@ -1,9 +1,0 @@
-#!/usr/bin/make -f
-# -*- makefile -*-
-
-%:
-	dh $@ 
-	
-override_dh_fixperm:
-	dh_fixperm
-	chmod 0775 debian/gensum/usr/bin/gensum
