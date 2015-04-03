@@ -49,7 +49,7 @@ spacer() {
 #the third argument is the index of the entry.
 #If necessary compares the generated checksum with a list of checksums given as file.
 comparesum() {
-    printf %b $BLUE"$3) "$FINE$BOLD"${1/sum//}: "$FINE
+    printf %b $BLUE"$3) "$FINE$BOLD"${1/sum/}: "$FINE
     case "$1" in
         "cksum") local parms='{print$1,$2}'
         ;;
