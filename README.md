@@ -17,7 +17,7 @@ HELP:
 	
         -m              		        Uses MD5 checksum
     	-s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all.
-    	-c <checfile> <file>		Specifies a file for checksum check
+    	-c <checkfile> <file>		Specifies a file for checksum check
     	-k                        		Uses CRC checksum
     	-d <directory>            		Calculate checksum for files inside a directory.
     	-z <archive>              		Calculate checksum for an archive and its contents.
