@@ -202,6 +202,7 @@ help() {
 #==== Main logic functions ====
 #Argument parser.
 argsparser() {
+    urlregex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
     p=0 #counter of checksum_cascade.
     if [ "$#" == "0" ]
         then help
@@ -211,7 +212,15 @@ argsparser() {
                 h)  help
                     _exit 0
                 ;;
-                c) (file $OPTARG | grep "ASCII\ text") > /dev/null
+                c) 
+                    if [[ $OPTARG =~ $urlregex ]]; then
+                        if ! [ -d $TMPDIR ]; then
+                            mkdir $TMPDIR
+                        fi
+                        wget $OPTARG -O $TMPDIR/tmpsum
+                        OPTARG=$TMPDIR/tmpsum
+                    fi
+                    (file $OPTARG | grep "ASCII\ text") > /dev/null
                     if [ "$?" == "0" ]; then
                         CHKSUMS=$OPTARG
                     else
