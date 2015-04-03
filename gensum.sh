@@ -217,7 +217,9 @@ argsparser() {
                         if ! [ -d $TMPDIR ]; then
                             mkdir $TMPDIR
                         fi
-                        wget $OPTARG -O $TMPDIR/tmpsum
+                        wget $OPTARG -O $TMPDIR/tmpsum -q --show-progress
+                        tput cuu 1
+                        tput el
                         OPTARG=$TMPDIR/tmpsum
                     fi
                     (file $OPTARG | grep "ASCII\ text") > /dev/null
