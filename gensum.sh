@@ -14,11 +14,12 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
+dep=(unar wget)
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/gensum
-version="1.5"
-date="(02/04/2015)"
+version="1.6"
+date="(20/04/2015)"
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
@@ -26,6 +27,18 @@ readonly BLUE="\033[01;34m"
 readonly YELLOW="\033[00;33m"
 readonly BOLD="\033[01m"
 readonly FINE="\033[0m"
+
+
+check_dep(){
+if ( which $1 &>/dev/null ); then
+if (DB==1) then
+echo -e $GREEN"$1 found"$FINE
+fi
+else
+echo -e $RED"$1 not found"$FINE
+fi
+}
+
 
 #Prints a spacer. If an argument is provided, it will be printed as the
 # spacer "title", like "==> TITLE <=="
@@ -187,15 +200,16 @@ help() {
 	echo ""
 	echo -e $GREEN"======================================================================================"$FINE
         echo "  Available Options:"
-        echo "    -m              		        Uses MD5 checksum"
+        echo "    -m              		        Uses MD5 checksum."
         echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
-        echo "    -c <file>                         Specifies a file for checksum check"
-        echo "    -k                        		Uses CRC checksum"
+        echo "    -c <file>                         	Specifies a file for checksum check."
+        echo "    -k                        		Uses CRC checksum."
         echo "    -d <directory>            		Calculate checksum for files inside a directory."
         echo "    -z <archive>              		Calculate checksum for an archive and its contents."
         echo "    -t <string>                	 	Calculate checksum for strings instead of files."
-        echo "    -v                        		Display script version"
-        echo "    -h                        		Display this page"
+	echo "    -b                                    Check dependencies."
+        echo "    -v                        		Display script version."
+        echo "    -h                        		Display this page."
 	echo -e $GREEN"======================================================================================"$FINE
 }
 
@@ -207,12 +221,19 @@ argsparser() {
     if [ "$#" == "0" ]
         then help
     fi
-    while getopts ":z:d:s:mhvtkc:" opt; do
+    while getopts ":z:d:s:j:mhbvtkc:" opt; do
             case "$opt" in
                 h)  help
                     _exit 0
                 ;;
-                c) 
+		b) DB=1
+			for i in "${dep[@]}"
+			do
+			check_dep $i
+			done
+			_exit 0
+		;;
+                c)
                     if [[ $OPTARG =~ $urlregex ]]; then
                         if ! [ -d $TMPDIR ]; then
                             mkdir $TMPDIR
@@ -226,7 +247,7 @@ argsparser() {
                     if [ "$?" == "0" ]; then
                         CHKSUMS=$OPTARG
                     else
-                        echo -e $RED"-$opt: $OPTARG is not a text file."$FINE
+                        echo -e $RED"-x$opt: $OPTARG is not a text file."$FINE
                         _exit 0
                     fi
                 ;;
@@ -260,6 +281,10 @@ argsparser() {
                     fi
                     break
                 ;;
+		j) while read line ; do
+			echo $line 
+			done <$1
+		;;
                 :) echo -e $RED"-$OPTARG parameter is mandatory."$FINE
                     _exit 1
                 ;;
@@ -278,7 +303,7 @@ argsparser() {
         return
     fi
     OPTIND=1
-    while getopts "z:d:s:mhvtkc:" opt; do
+    while getopts "z:d:s:j:mhbvtkc:" opt; do
         case "$opt" in
           z) if is_archive $OPTARG; then
                 echo -e $BOLD"Checking archive $OPTARG"$FINE
