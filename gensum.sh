@@ -19,6 +19,7 @@ SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/gensum
 version="1.6"
+DB=0
 date="(20/04/2015)"
 # For text colour
 readonly RED="\033[01;31m"
@@ -28,14 +29,13 @@ readonly YELLOW="\033[00;33m"
 readonly BOLD="\033[01m"
 readonly FINE="\033[0m"
 
-
 check_dep(){
-if ( which $1 &>/dev/null ); then
-if (DB==1) then
-echo -e $GREEN"$1 found"$FINE
+if ( which $i &>/dev/null ); then
+if ($DB==1 &>/dev/null) then
+	echo -e $GREEN"$i found"$FINE
 fi
 else
-echo -e $RED"$1 not found"$FINE
+	echo -e $RED"$i not found"$FINE && missing="1"
 fi
 }
 
@@ -365,8 +365,16 @@ main(){
     fi
 }
 #---------------------------------------------------- Script Start
+for i in "${dep[@]}"
+do
+         check_dep
+done
 
+if [ "$missing" == "1" ]; then
+	_exit 0
+else
+echo $missing
 argsparser $@
 main $@
 _exit 0
-
+fi
