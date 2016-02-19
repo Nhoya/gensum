@@ -20,7 +20,7 @@ IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/gensum
 version="1.6"
 DB=0
-date="(20/04/2015)"
+date="(19/02/2016)"
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
