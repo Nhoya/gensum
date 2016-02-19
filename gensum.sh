@@ -81,7 +81,7 @@ comparesum() {
             csum="$csum OK!"
             printf %b $GREEN
         else
-            csum="$csum ERRATO!"
+            csum="$csum WRONG!"
             printf %b $RED
         fi
     else
