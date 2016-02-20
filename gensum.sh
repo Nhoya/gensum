@@ -248,7 +248,6 @@ help() {
     echo "    -z <archive>              		Calculate checksum for an archive and its contents."
     echo "    -t <string>                	 	Calculate checksum for strings instead of files."
     echo "    -o <outfile>                          Writes output to outfile."
-    echo "    -b                                    Check dependencies."
     echo "    -v                        		Display script version."
     echo "    -h                        		Display this page."
     echo -e "$GREEN======================================================================================$FINE"
@@ -262,16 +261,9 @@ argsparser() {
     if [ "$#" == "0" ]
         then help
     fi
-    while getopts ":z:d:s:o:mhbvtkc:" opt; do
+    while getopts ":z:d:s:o:mhvtkc:" opt; do
         case "$opt" in
             h)  help
-                _exit 0
-            ;;
-            b) DB=1
-                for i in "${dep[@]}"
-                do
-                    check_dep "$i"
-                done
                 _exit 0
             ;;
             o)
@@ -361,7 +353,7 @@ argsparser() {
         return
     fi
     OPTIND=1
-    while getopts "z:d:s:o:mhbvtkc:" opt; do
+    while getopts "z:d:s:o:mhvtkc:" opt; do
         case "$opt" in
           z) if is_archive "$OPTARG"; then
                 _echo "raw" "${BOLD}Checking archive $OPTARG$FINE\n"
@@ -427,7 +419,6 @@ for i in "${dep[@]}"
 do
     check_dep "$i"
 done
-
 if [ "$missing" == "1" ]; then
     _exit 1
 fi
