@@ -29,13 +29,21 @@ readonly YELLOW="\033[00;33m"
 readonly BOLD="\033[01m"
 readonly FINE="\033[0m"
 
+# If the appropriate variables are set, this function writes output to file
+# adopting a simpler format like:
+#         filename   hash
+_writetofile() {
+    if [ -n "$OUTFILE" ]; then
+        echo -e "$1" >> "$OUTFILE"
+    fi
+}
+# Custom echo function that handles printing on screen.
 _echo() {
-    if ! test -z $OUTFILE; then
-        prn="$2"
-        if [ ! "$1" == "raw" ]; then
-            prn="$prn\n"
-        fi
-        printf %s "$prn" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | tee -a "$OUTFILE"
+    if [ -n "$OUTFILE" ]; then
+        #echo -en "$2" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> "$OUTFILE"
+        #if [ ! "$1" == "raw" ]; then
+        #    echo -en "\n" >> "$OUTFILE"
+        #fi
         return
     fi
     case $1 in
@@ -104,10 +112,12 @@ comparesum() {
     esac
     if ! test -v STR; then
         local csum
-        csum=$("$1" "$2" | awk $parms)
+        csum=$("$1" "$(basename $2)") 
+        _writetofile "$csum"
+        csum=$(echo -n $csum | awk $parms)
     else
         local csum
-        csum=$(echo -n "$2" | "$1" | awk $parms)
+        csum=$(echo -n "$2" | "$1" | awk $parms) # hashing the string
     fi
     if test -v CHKSUMS; then
         (grep "$csum" "$CHKSUMS") > /dev/null
@@ -267,7 +277,19 @@ argsparser() {
             o)
                 if [[ -e $OPTARG ]]; then
                     _echo "error" "File exists"
-                    _exit 1
+                    _echo "raw" "${BOLD}Do you want to append the output on ${OPTARG}? [y/N]$FINE\n"
+                    read -r input
+                    case $input in
+                        "" | [Nn])
+                            printf %b "${RED}Output to file disabled$FINE\n"
+                        ;;
+                        [Yy])
+                            printf %b "${YELLOW}Appending output to $OPTARG$FINE\n"
+                            OUTFILE=$OPTARG
+                        ;;
+                        *)
+                        ;;
+                    esac
                 else
                     OUTFILE=$OPTARG
                     touch "$OPTARG"
