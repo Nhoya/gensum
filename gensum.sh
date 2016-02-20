@@ -33,7 +33,7 @@ readonly FINE="\033[0m"
 # adopting a simpler format like:
 #         filename   hash
 _writetofile() {
-    if [ -n "$OUTFILE" ]; then
+    if [[ -n "$OUTFILE" -n "$1" ]]; then
         echo -e "$1" >> "$OUTFILE"
     fi
 }
