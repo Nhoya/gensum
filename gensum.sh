@@ -208,8 +208,8 @@ checksum_cascade() {
     if 	is_archive "$1"; then
         archive "$1"
     elif [[ -d $1 ]]; then
-        for file in "$1"/*; do
-            checksum_cascade "$file"
+        for f in $(find $1 -type f); do
+            checksum_cascade "$f" #I call this because $f can be still an archive, but is never a directory.
         done
     else
         checksum "$1"
