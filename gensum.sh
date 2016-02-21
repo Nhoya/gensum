@@ -208,9 +208,15 @@ checksum_cascade() {
     if 	is_archive "$1"; then
         archive "$1"
     elif [[ -d $1 ]]; then
-        for f in $(find $1 -type f -not -path '*/\.*'); do
-            checksum_cascade "$f" #I call this because $f can be still an archive, but is never a directory.
-        done
+        if [ -n "$DOTFILES" ]; then
+            for f in $(find $1 -type f); do
+                checksum_cascade "$f" #I call this because $f can be still an archive, but is never a directory.
+            done
+        else
+            for f in $(find $1 -type f -not -path '*/\.*'); do
+                checksum_cascade "$f" #I call this because $f can be still an archive, but is never a directory.
+            done
+        fi
     else
         checksum "$1"
     fi
@@ -247,6 +253,7 @@ help() {
     echo "    -c <file>                         	Specifies a file for checksum check."
     echo "    -k                        		Uses CRC checksum."
     echo "    -d <directory>            		Calculate checksum for files inside a directory."
+    echo "    -H                                        Includes hidden dofiles when descending directories."
     echo "    -z <archive>              		Calculate checksum for an archive and its contents."
     echo "    -t <string>                	 	Calculate checksum for strings instead of files."
     echo "    -o <outfile>                          Writes output to outfile."
@@ -263,10 +270,13 @@ argsparser() {
     if [ "$#" == "0" ]
         then help
     fi
-    while getopts ":z:d:s:o:mhvtkc:" opt; do
+    while getopts ":z:d:s:o:mHhvtkc:" opt; do
         case "$opt" in
             h)  help
                 _exit 0
+            ;;
+            H)
+                DOTFILES="Y"
             ;;
             o)
                 if [[ -e $OPTARG ]]; then
@@ -355,7 +365,7 @@ argsparser() {
         return
     fi
     OPTIND=1
-    while getopts "z:d:s:o:mhvtkc:" opt; do
+    while getopts "z:d:s:o:mhHvtkc:" opt; do
         case "$opt" in
           z) if is_archive "$OPTARG"; then
                 _echo "raw" "${BOLD}Checking archive $OPTARG$FINE\n"
