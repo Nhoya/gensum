@@ -33,7 +33,7 @@ readonly FINE="\033[0m"
 # adopting a simpler format like:
 #         filename   hash
 _writetofile() {
-    if [[ -n "$OUTFILE" -n "$1" ]]; then
+    if [ -n "$OUTFILE" ] && [ -n "$1" ]; then
         echo -e "$1" >> "$OUTFILE"
     fi
 }
@@ -202,10 +202,13 @@ is_archive() {
 #then for directories and then if the argument is a simple file it will
 #calculate its checksum.
 checksum_cascade() {
+    if [ -z "$1" ]; then
+        return
+    fi
     if 	is_archive "$1"; then
         archive "$1"
     elif [[ -d $1 ]]; then
-        for file in $1/*; do
+        for file in "$1"/*; do
             checksum_cascade "$file"
         done
     else
@@ -221,7 +224,7 @@ archive() {
         if ! [[ -d $TMPDIR ]] ; then
             mkdir "$TMPDIR"
         fi
-        FPATH=$(unar -q -r -o "$TMPDIR" "$1" | grep 'extracted\ to' | awk -F \" '{print$2}')
+        FPATH=$(unar -d -r -o "$TMPDIR" "$1" | grep -i 'extracted\ to' | awk -F \" '{print$2}')
         checksum "$1" 2>/dev/null
         checksum_cascade "$FPATH"
     else
