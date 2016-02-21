@@ -3,6 +3,7 @@ Powerful checksum generation helper!
 
 Gensum is a bash script created with the intent to speed up the work of any forensic Analyst.
 It recursively generates checksums starting from archives (and its contents), folders, files and even strings, and these hashes can be saved inside a file with the following format
+
 	hash filename
 
 Additional dependencies: unar
