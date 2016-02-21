@@ -7,8 +7,8 @@ It recursively generates checksums starting from archives (and its contents), fo
 	hash filename
 
 Additional dependencies: unar
+Usage
 
-Usage screen
 	Copyright(C) 2015 sten_gun, Nhoya  
 	
 	Usage: gensum.sh [options] file(s)
