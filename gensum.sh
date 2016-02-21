@@ -112,9 +112,8 @@ comparesum() {
     esac
     if ! test -v STR; then
         local csum
-        csum=$("$1" "$(basename $2)") 
-        _writetofile "$csum"
-        csum=$(echo -n $csum | awk $parms)
+        csum=$("$1" "$2" | awk $parms)
+        _writetofile "$csum $(basename $2)"
     else
         local csum
         csum=$(echo -n "$2" | "$1" | awk $parms) # hashing the string
