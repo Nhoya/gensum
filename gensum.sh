@@ -18,8 +18,8 @@ dep=(unar wget)
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/gensum
-version="1.7b"
-date="(19/02/2016)"
+version="1.7"
+date="(22/02/2016)"
 OUTFILE=""
 # For text colour
 readonly RED="\033[01;31m"
@@ -258,18 +258,18 @@ help() {
     echo ""
     echo -e "${GREEN}======================================================================================$FINE"
     echo "  Available Options:"
-    echo "    -m              		        Uses MD5 checksum."
+    echo "    -m					Uses MD5 checksum."
     echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
-    echo "    -c <file>                         	Specifies a file for checksum check."
-    echo "    -k                        		Uses CRC checksum."
+    echo "    -c <file>				Specifies a file for checksum check."
+    echo "    -k					Uses CRC checksum."
     echo "    -d <directory>            		Calculate checksum for files inside a directory."
-    echo "    -H                                        Includes hidden dofiles when descending directories."
-    echo "    -x                                        Extract archives if using -d."
-    echo "    -z <archive>              		Calculate checksum for an archive and its contents."
-    echo "    -t <string>                	 	Calculate checksum for strings instead of files."
-    echo "    -o <outfile>                          Writes output to outfile."
-    echo "    -v                        		Display script version."
-    echo "    -h                        		Display this page."
+    echo "    -H					Includes hidden dotfiles when descending directories."
+    echo "    -x					Extract archives if using -d."
+    echo "    -z <archive>			Calculate checksum for an archive and its contents."
+    echo "    -t <string>				Calculate checksum for strings instead of files."
+    echo "    -o <outfile>			Writes output to outfile."
+    echo "    -v					Display script version."
+    echo "    -h					Display this page."
     echo -e "$GREEN======================================================================================$FINE"
 }
 
