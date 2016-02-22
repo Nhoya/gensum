@@ -21,7 +21,6 @@ TMPDIR=/tmp/gensum
 version="1.7b"
 date="(19/02/2016)"
 OUTFILE=""
-readonly NAMPIPE=/tmp/gensum-pipe
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
@@ -450,10 +449,7 @@ done
 if [ "$missing" == "1" ]; then
     _exit 1
 fi
-trap 'rm -f $NAMPIPE; rm -rf $TMPDIR; exit 0' INT TERM EXIT
-if [[ ! -p $NAMPIPE ]]; then
-    mkfifo $NAMPIPE
-fi
+trap 'rm -rf $TMPDIR; exit 0' INT TERM EXIT
 argsparser "$@"
 main "$@"
 _exit 0
