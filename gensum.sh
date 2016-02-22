@@ -14,11 +14,13 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>
+dep=(unar wget)
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 TMPDIR=/tmp/gensum
-version="1.5"
-date="(02/04/2015)"
+version="1.7"
+date="(22/02/2016)"
+OUTFILE=""
 # For text colour
 readonly RED="\033[01;31m"
 readonly GREEN="\033[01;32m"
@@ -27,21 +29,71 @@ readonly YELLOW="\033[00;33m"
 readonly BOLD="\033[01m"
 readonly FINE="\033[0m"
 
+# If the appropriate variables are set, this function writes output to file
+# adopting a simpler format like:
+#         filename   hash
+_writetofile() {
+    if [ -n "$OUTFILE" ] && [ -n "$1" ]; then
+        echo -e "$1" >> "$OUTFILE"
+    fi
+}
+# Custom echo function that handles printing on screen.
+_echo() {
+    if [ -n "$OUTFILE" ]; then
+        #echo -en "$2" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> "$OUTFILE"
+        #if [ ! "$1" == "raw" ]; then
+        #    echo -en "\n" >> "$OUTFILE"
+        #fi
+        return
+    fi
+    case $1 in
+        "raw")
+            printf %b "$2"
+            return
+        ;;
+        "info")
+            printf %b "$GREEN$2$FINE"
+        ;;
+        "warn")
+            printf %b "$YELLOW$2$FINE"
+        ;;
+        "error")
+            printf %b "$RED$2$FINE"
+        ;;
+        *)
+        ;;
+    esac
+    printf %b "\n"
+}
+
+check_dep() {
+if ( which "$1" &>/dev/null ); then
+    if [ -n "$DB" ]; then
+        _echo "info" "$1 found"
+    fi
+else
+    _echo "error" "$1 not found"
+    missing="1"
+fi
+}
+
 #Prints a spacer. If an argument is provided, it will be printed as the
 # spacer "title", like "==> TITLE <=="
 spacer() {
-        if [ "$#" == "0" ]; then
-                echo -e $GREEN"=========================================================="$FINE
+    if [ "$#" == "0" ]; then
+        _echo "info" "=========================================================="
+    fi
+    if [ "$#" -gt "0" ]; then
+        strn="$1"
+        for st in "${@:2:$#}"; do
+        strn="$strn $st"
+        done
+        if [ -z $OUTFILE ]; then
+            _echo "warn" "=========================================================="
+            tput cuu 1
         fi
-        if [ "$#" -gt "0" ]; then
-                strn="$1"
-                for st in ${@:2:$#}; do
-                strn="$strn $st"
-                done
-                echo -e $YELLOW"=========================================================="$FINE
-                tput cuu 1
-                printf %b $YELLOW"==> $FINE$BOLD$strn $FINE"$YELLOW"<\n"$FINE
-        fi
+        _echo "warn" "==> $FINE$BOLD$strn $FINE$YELLOW<=="
+    fi
 }
 
 #Generates a checksum for a file or a string. You can specify the program as first argument.
@@ -49,7 +101,7 @@ spacer() {
 #the third argument is the index of the entry.
 #If necessary compares the generated checksum with a list of checksums given as file.
 comparesum() {
-    printf %b $BLUE"$3) "$FINE$BOLD"${1/sum/}: "$FINE
+    local pre="$BLUE$3) $FINE$BOLD${1/sum/}: $FINE"
     case "$1" in
         "cksum") local parms='{print$1,$2}'
         ;;
@@ -58,76 +110,81 @@ comparesum() {
         ;;
     esac
     if ! test -v STR; then
-        local csum=$($1 $2 | awk $parms)
+        local csum
+        local fname
+        fname=$(basename "$2")
+        csum=$(pv -N "$fname ${1/sum/}" "$2" | "$1" | awk $parms )
+        if [ -z $OUTFILE ]; then
+            tput cuu 1
+            tput el
+        fi
+        _writetofile "$csum $fname"
     else
-        local csum=$(echo -n "$2" | $1 | awk $parms)
+        local csum
+        csum=$(echo -n "$2" | "$1" | awk $parms) # hashing the string
     fi
     if test -v CHKSUMS; then
-        (grep $csum $CHKSUMS) > /dev/null
+        (grep "$csum" "$CHKSUMS") > /dev/null
         if [ "$?" == "0" ]; then
-            csum="$csum OK!"
-            printf %b $GREEN
+            csum="$GREEN$csum OK!$FINE"
         else
-            csum="$csum ERRATO!"
-            printf %b $RED
+            csum="$RED$csum WRONG!$FINE"
         fi
     else
-        printf %b $BOLD
+        csum=$BOLD$csum$FINE
     fi
-    printf %b $csum$FINE"\n"
+    _echo "raw" "$pre$csum\n"
 }
 
 #Calculates checksum for given argument. The argument must be a file.
 checksum() {
-        spacer $1
-        local r=1
-        if test -v MD5 ; then
-                comparesum md5sum $1 $r
-                r=$(($r+1))
+    spacer "$1"
+    local r=1
+    if test -v MD5 ; then
+        comparesum md5sum "$1" "$r"
+        r=$((r+1))
+    fi
+    if test -v SHA ; then
+        if [ "$SHA" == "basic" ] || [ "$SHA" == "1" ] || [ "$SHA" == "all" ]; then
+            comparesum sha1sum "$1" "$r"
+            r=$((r+1))
         fi
-        if test -v SHA ; then
-                if [ "$SHA" == "basic" ] || [ "$SHA" == "1" ] || [ "$SHA" == "all" ]; then
-                        comparesum sha1sum $1 $r
-                        r=$(($r+1))
-                fi
-                if [ "$SHA" == "all" ] || [ "$SHA" == "224" ]; then
-                        comparesum sha224sum $1 $r
-                        r=$(($r+1))
-                fi
-                if [ "$SHA" == "basic" ] || [ "$SHA" == "256" ] || [ "$SHA" == "all" ] ; then
-                        comparesum sha256sum $1 $r
-                        r=$(($r+1))
-                fi
-                if  [ "$SHA" == "all" ] || [ "$SHA" == "384" ]; then
-                        comparesum sha384sum $1 $r
-                        r=$(($r+1))
-                fi
-                if [ "$SHA" == "all" ] || [ "$SHA" == "512" ]; then
-                        comparesum sha512sum $1 $r
-                        r=$(($r+1))
-                fi
+        if [ "$SHA" == "all" ] || [ "$SHA" == "224" ]; then
+            comparesum sha224sum "$1" "$r"
+            r=$((r+1))
         fi
+        if [ "$SHA" == "basic" ] || [ "$SHA" == "256" ] || [ "$SHA" == "all" ] ; then
+            comparesum sha256sum "$1" "$r"
+            r=$((r+1))
+        fi
+        if  [ "$SHA" == "all" ] || [ "$SHA" == "384" ]; then
+            comparesum sha384sum "$1" "$r"
+            r=$((r+1))
+        fi
+        if [ "$SHA" == "all" ] || [ "$SHA" == "512" ]; then
+            comparesum sha512sum "$1" "$r"
+            r=$((r+1))
+        fi
+    fi
 
-		if test -v CK ; then
-                #csum=$(cksum $1 |awk '{print$1,$2}')
-                #echo -e "$BLUE$r)$FINE "$BOLD"CRC:$FINE $csum"
-                comparesum cksum $1 $r
-                r=$(($r+1))
-		fi
-        spacer
+    if test -v CK ; then
+        comparesum cksum "$1" "$r"
+        r=$((r+1))
+    fi
+    spacer
 }
 
 #Asks user if he wants to delete temporary files generated by this script.
 ask_del() {
-        echo -e $BOLD"Delete extracted files? ($TMPDIR) [y/n]"$FINE
-        read input
-        case $input in
-                ""| [Yy]) rm -rf $TMPDIR
-                        echo -e $RED"Files deleted"$FINE
-                ;;
-                *) echo -e  $YELLOW"Warning: temporary files saved in $TMPDIR"$FINE
-                ;;
-        esac
+    printf %b "${BOLD}Delete extracted files? ($TMPDIR) [Y/n]$FINE\n"
+    read -r input
+    case $input in
+        ""| [Yy]) rm -rf "$TMPDIR"
+            _echo "info" "Files deleted"
+        ;;
+        *) _echo "warn" "Warning: temporary files saved in $TMPDIR"
+        ;;
+    esac
 }
 
 #Custom exit function, it integrates ask_del for managing script created
@@ -135,9 +192,9 @@ ask_del() {
 _exit() {
     IFS=$SAVEIFS
     if [[ -d $TMPDIR ]]; then
-            ask_del 2>/dev/null
+        ask_del 2>/dev/null
     fi
-    exit $1
+    exit "$1"
 }
 
 #Checks if the file given as argument is an elegible archive.
@@ -150,53 +207,70 @@ is_archive() {
 #then for directories and then if the argument is a simple file it will
 #calculate its checksum.
 checksum_cascade() {
-        if 	is_archive $1; then
-                archive $1
-        elif [[ -d $1 ]]; then
-                for file in $1/*; do
-                        checksum_cascade $file
-                done
+    if [ -z "$1" ]; then
+        return
+    fi
+    if [ -n "$EXTRACT" ] && is_archive "$1"; then
+        archive "$1"
+    elif [[ -d $1 ]]; then
+        if [ -n "$DOTFILES" ]; then
+            find "$1" -type f -print0 | 
+            while IFS= read -r -d $'\0' line; do 
+                checksum_cascade "$line"
+            done
         else
-                checksum $1
+            find "$1" -type f -not -path '*/\.*' -print0 |
+            while IFS= read -r -d $'\0' line; do 
+                checksum_cascade "$line"
+            done
         fi
+    else
+        checksum "$1"
+    fi
 }
 
 #Extracts the archive given as argument and calls the recursive checksum
 #function on its contents.
 archive() {
-        if 	is_archive $1
-        then
-                if ! [[ -d $TMPDIR ]] ; then
-                        mkdir $TMPDIR
-                fi
-                FPATH=$(unar -q -r -o $TMPDIR $1 | grep 'extracted\ to' | awk -F \" '{print$2}')
-                checksum $1 2>/dev/null
-                checksum_cascade $FPATH
-        else
-            echo $1 " is not an archive."
-            spacer
+    if is_archive "$1"
+    then
+        _echo "info" "Extracting archive $1"
+        if ! [[ -d $TMPDIR ]] ; then
+            mkdir "$TMPDIR"
         fi
+        FPATH=$(unar -d -r -o "$TMPDIR" "$1" | grep -i 'extracted\ to' | awk -F \" '{print$2}')
+        checksum "$1"
+        if [ -n "$FPATH" ]; then
+            checksum_cascade "$FPATH"
+        fi
+    else
+        _echo "error" "$1 is not an archive."
+        spacer
+    fi
 }
 
 #Usage screen.
 help() {
-        echo -e "gensum $YELLOW$BOLD$version$FINE$YELLOW$BOLD$date$FINE, powerful multi file, multi checksum generator."
-        echo "Copyright(C) 2015 sten_gun, Nhoya"
-        echo ""
-        echo -e $BOLD"  Usage: $0 [OPTIONS] [ARGS ... ]"$FINE
-	echo ""
-	echo -e $GREEN"======================================================================================"$FINE
-        echo "  Available Options:"
-        echo "    -m              		        Uses MD5 checksum"
-        echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
-        echo "    -c <file>                         Specifies a file for checksum check"
-        echo "    -k                        		Uses CRC checksum"
-        echo "    -d <directory>            		Calculate checksum for files inside a directory."
-        echo "    -z <archive>              		Calculate checksum for an archive and its contents."
-        echo "    -t <string>                	 	Calculate checksum for strings instead of files."
-        echo "    -v                        		Display script version"
-        echo "    -h                        		Display this page"
-	echo -e $GREEN"======================================================================================"$FINE
+    echo -e "gensum $YELLOW$BOLD$version$FINE $YELLOW$BOLD$date$FINE, powerful multi file, multi checksum generator."
+    echo "Copyright(C) 2015 sten_gun, Nhoya"
+    echo ""
+    echo -e "$BOLD  Usage: $0 [OPTIONS] [ARGS ... ]$FINE"
+    echo ""
+    echo -e "${GREEN}======================================================================================$FINE"
+    echo "  Available Options:"
+    echo "    -m					Uses MD5 checksum."
+    echo "    -s [1| 224| 256| 384| 512 |all]	Uses SHA1|SHA224|SHA256|SHA384|SHA512 or all."
+    echo "    -c <file>				Specifies a file for checksum check."
+    echo "    -k					Uses CRC checksum."
+    echo "    -d <directory>            		Calculate checksum for files inside a directory."
+    echo "    -H					Includes hidden dotfiles when descending directories."
+    echo "    -x					Extract archives if using -d."
+    echo "    -z <archive>			Calculate checksum for an archive and its contents."
+    echo "    -t <string>				Calculate checksum for strings instead of files."
+    echo "    -o <outfile>			Writes output to outfile."
+    echo "    -v					Display script version."
+    echo "    -h					Display this page."
+    echo -e "$GREEN======================================================================================$FINE"
 }
 
 #==== Main logic functions ====
@@ -207,103 +281,131 @@ argsparser() {
     if [ "$#" == "0" ]
         then help
     fi
-    while getopts ":z:d:s:mhvtkc:" opt; do
-            case "$opt" in
-                h)  help
-                    _exit 0
-                ;;
-                c) 
-                    if [[ $OPTARG =~ $urlregex ]]; then
-                        if ! [ -d $TMPDIR ]; then
-                            mkdir $TMPDIR
-                        fi
-                        wget $OPTARG -O $TMPDIR/${OPTARG##*/} -q --show-progress
-                        tput cuu 1
-                        tput el
-                        OPTARG=$TMPDIR/${OPTARG##*/}
-                    fi
-                    (file $OPTARG | grep "ASCII\ text") > /dev/null
-                    if [ "$?" == "0" ]; then
-                        CHKSUMS=$OPTARG
-                    else
-                        echo -e $RED"-$opt: $OPTARG is not a text file."$FINE
-                        _exit 0
-                    fi
-                ;;
-                s)
-                    case "$OPTARG" in
-                    1|224|256|384|512|"all")
-                        SHA="$OPTARG"
-                    ;;
-               		*)
-                	echo -e $RED"-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"$FINE
-                	_exit 1
-                    ;;
+    while getopts ":z:d:s:o:mHhvtxkc:" opt; do
+        case "$opt" in
+            h)  help
+                _exit 0
+            ;;
+            H)
+                DOTFILES="Y"
+            ;;
+            x)
+                EXTRACT="Y"
+            ;;
+            o)
+                if [[ -e $OPTARG ]]; then
+                    _echo "error" "File exists"
+                    _echo "raw" "${BOLD}Do you want to append the output on ${OPTARG}? [y/N]$FINE\n"
+                    read -r input
+                    case $input in
+                        "" | [Nn])
+                            printf %b "${RED}Output to file disabled$FINE\n"
+                        ;;
+                        [Yy])
+                            printf %b "${YELLOW}Appending output to $OPTARG$FINE\n"
+                            OUTFILE=$OPTARG
+                        ;;
+                        *)
+                        ;;
                     esac
-                ;;
-                m) MD5=1
-                unset STR
-                ;;
-                k) CK=1
-                ;;
-                t) 
-                    for str in ${@:$OPTIND}; do
-                            STR="$STR $str"
-                    done
-                    if [ -v STR ]; then
-                            echo -e $BOLD"String Checksum"$FINE
-                            spacer
-                            STR=$(echo -e "$STR" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-                    else
-                            echo -e $RED"Error: empty string"$FINE
-                            _exit 1
+                else
+                    OUTFILE=$OPTARG
+                    touch "$OPTARG"
+                fi
+            ;;
+            c)
+                if [[ $OPTARG =~ $urlregex ]]; then
+                    if ! [ -d $TMPDIR ]; then
+                        mkdir $TMPDIR
                     fi
-                    break
+                    wget "$OPTARG" -O "$TMPDIR/${OPTARG##*/}" -q --show-progress
+                    tput cuu 1
+                    tput el
+                    OPTARG=$TMPDIR/${OPTARG##*/}
+                fi
+                (file "$OPTARG" | grep "ASCII\ text") > /dev/null
+                if [ "$?" == "0" ]; then
+                    CHKSUMS=$OPTARG
+                else
+                    _echo "error" "-x$opt: $OPTARG is not a text file."
+                    _exit 0
+                fi
+            ;;
+            s)
+                case "$OPTARG" in
+                1|224|256|384|512|"all")
+                    SHA="$OPTARG"
                 ;;
-                :) echo -e $RED"-$OPTARG parameter is mandatory."$FINE
+                *)
+                    _echo "error" "-s argument is wrong! accepted args: [1| 224| 256| 384| 512 |all]"
                     _exit 1
                 ;;
-                v) echo $version$ $date
-                    _exit 0
-                ;;
-            esac
+                esac
+            ;;
+            m) MD5=1
+            unset STR
+            ;;
+            k) CK=1
+            ;;
+            t) 
+                for str in "${@:$OPTIND}"; do
+                    STR="$STR $str"
+                done
+                if [ -v STR ]; then
+                    _echo "raw" "${BOLD}String Checksum$FINE\n"
+                    spacer
+                    STR=$(echo -e "$STR" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                else
+                    _echo "error" "Error: empty string"
+                    _exit 1
+                fi
+                break
+            ;;
+            :) _echo "error" "-$OPTARG parameter is mandatory."
+                _exit 1
+            ;;
+            v) _echo "raw" "$version $date\n"
+                _exit 0
+            ;;
+        esac
     done
 
     if ! [ -v SHA ] && ! [ -v MD5 ]  && ! [ -v CK ]; then
-            SHA="basic"
-            MD5=1
-            CK=1
+        SHA="basic"
+        MD5=1
+        CK=1
     fi
-    if ! test -z $STR ; then
+    if [ -n "$STR" ]; then
         return
     fi
     OPTIND=1
-    while getopts "z:d:s:mhvtkc:" opt; do
+    while getopts "z:d:s:o:mhHxvtkc:" opt; do
         case "$opt" in
-          z) if is_archive $OPTARG; then
-                echo -e $BOLD"Checking archive $OPTARG"$FINE
+          z) if is_archive "$OPTARG"; then
+                _echo "raw" "${BOLD}Checking archive $OPTARG$FINE\n"
                 p=${p:=1}
+                EXTRACT="Y"
                 spacer
-                checksum_cascade $OPTARG
+                checksum_cascade "$OPTARG"
             else
-                echo -e $RED"-z: $OPTARG is not an archive file."$FINE
+                _echo "error" "-z: $OPTARG is not an archive file."
                 _exit 1
             fi
           ;;
           d) if [[ -d $OPTARG ]]; then
-                echo -e $BOLD"Checking directory $OPTARG"$FINE
+                _echo "raw" "${BOLD}Checking directory $OPTARG$FINE\n"
                 p=${p:=1}
                 spacer
-                checksum_cascade $OPTARG
+                checksum_cascade "$OPTARG"
             else
-                echo -e $RED"-d: $OPTARG is not a directory."$FINE
+                _echo "error" "-d: $OPTARG is not a directory."
                 _exit 1
             fi
           ;;
-          \?) echo -e $RED"invalid option(s): -$OPTARG"$FINE
+          \?) _echo "error" "invalid option(s): -$OPTARG"
               _exit 1
           ;;
-          :) echo -e $RED"-$OPTARG needs argument(s)"$FINE
+          :) _echo "error" "-$OPTARG needs argument(s)"
              _exit 1
           ;;
         esac
@@ -317,31 +419,37 @@ main(){
         _exit 0
     else
         r=0
-        for file in ${@:$OPTIND}; do
+        for file in "${@:$OPTIND}"; do
             if [ $r == 0 ] ; then
-                    echo -e $BOLD"Checking given files"$FINE
-                    spacer
-                    r=$(($r+1))
+                _echo "raw" "${BOLD}Checking given files$FINE\n"
+                spacer
+                r=$((r+1))
             fi
-            if [ -d $file ]; then
-                    echo -e $RED"$file is a directory, skipping."$FINE
-                    spacer
-            elif [ -e $file ]; then
-                    checksum $file
+            if [ -d "$file" ]; then
+                _echo "error" "$file is a directory, skipping."
+                spacer
+            elif [ -e "$file" ]; then
+                    checksum "$file"
             else
-                    echo -e $RED"$file: file  doesn't exist"$FINE
-                    spacer
+                _echo "error" "$file: file  doesn't exists"
+                spacer
             fi
         done
     fi
     if [ "$r" == "0" ] && [ "${p:-0}" == "0" ]; then
-        echo -e $RED"Error: missing arguments."$FINE
+        _echo "error" "Error: missing arguments."
         _exit 1
     fi
 }
 #---------------------------------------------------- Script Start
-
-argsparser $@
-main $@
+for i in "${dep[@]}"
+do
+    check_dep "$i"
+done
+if [ "$missing" == "1" ]; then
+    _exit 1
+fi
+trap 'rm -rf $TMPDIR; exit 0' INT TERM EXIT
+argsparser "$@"
+main "$@"
 _exit 0
-
