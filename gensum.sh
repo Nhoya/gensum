@@ -112,10 +112,14 @@ comparesum() {
     esac
     if ! test -v STR; then
         local csum
-        csum=$(pv -N "${1/sum/}" "$2" | "$1" | awk $parms )
-        tput cuu 1
-        tput el
-        _writetofile "$csum $(basename $2)"
+        local fname
+        fname=$(basename "$2")
+        csum=$(pv -N "$fname ${1/sum/}" "$2" | "$1" | awk $parms )
+        if [ -z $OUTFILE ]; then
+            tput cuu 1
+            tput el
+        fi
+        _writetofile "$csum $fname"
     else
         local csum
         csum=$(echo -n "$2" | "$1" | awk $parms) # hashing the string
@@ -207,7 +211,7 @@ checksum_cascade() {
     if [ -z "$1" ]; then
         return
     fi
-    if 	is_archive "$1"; then
+    if [ -n "$EXTRACT" ] && is_archive "$1"; then
         archive "$1"
     elif [[ -d $1 ]]; then
         if [ -n "$DOTFILES" ]; then
@@ -231,12 +235,15 @@ checksum_cascade() {
 archive() {
     if is_archive "$1"
     then
+        _echo "info" "Extracting archive $1"
         if ! [[ -d $TMPDIR ]] ; then
             mkdir "$TMPDIR"
         fi
         FPATH=$(unar -d -r -o "$TMPDIR" "$1" | grep -i 'extracted\ to' | awk -F \" '{print$2}')
-        checksum "$1" 2>/dev/null
-        checksum_cascade "$FPATH"
+        checksum "$1"
+        if [ -n "$FPATH" ]; then
+            checksum_cascade "$FPATH"
+        fi
     else
         _echo "error" "$1 is not an archive."
         spacer
@@ -258,6 +265,7 @@ help() {
     echo "    -k                        		Uses CRC checksum."
     echo "    -d <directory>            		Calculate checksum for files inside a directory."
     echo "    -H                                        Includes hidden dofiles when descending directories."
+    echo "    -x                                        Extract archives if using -d."
     echo "    -z <archive>              		Calculate checksum for an archive and its contents."
     echo "    -t <string>                	 	Calculate checksum for strings instead of files."
     echo "    -o <outfile>                          Writes output to outfile."
@@ -274,13 +282,16 @@ argsparser() {
     if [ "$#" == "0" ]
         then help
     fi
-    while getopts ":z:d:s:o:mHhvtkc:" opt; do
+    while getopts ":z:d:s:o:mHhvtxkc:" opt; do
         case "$opt" in
             h)  help
                 _exit 0
             ;;
             H)
                 DOTFILES="Y"
+            ;;
+            x)
+                EXTRACT="Y"
             ;;
             o)
                 if [[ -e $OPTARG ]]; then
@@ -369,11 +380,12 @@ argsparser() {
         return
     fi
     OPTIND=1
-    while getopts "z:d:s:o:mhHvtkc:" opt; do
+    while getopts "z:d:s:o:mhHxvtkc:" opt; do
         case "$opt" in
           z) if is_archive "$OPTARG"; then
                 _echo "raw" "${BOLD}Checking archive $OPTARG$FINE\n"
                 p=${p:=1}
+                EXTRACT="Y"
                 spacer
                 checksum_cascade "$OPTARG"
             else
@@ -438,7 +450,7 @@ done
 if [ "$missing" == "1" ]; then
     _exit 1
 fi
-trap "rm -f $NAMPIPE; rm -rf $TMPDIR; exit 0" INT TERM EXIT
+trap 'rm -f $NAMPIPE; rm -rf $TMPDIR; exit 0' INT TERM EXIT
 if [[ ! -p $NAMPIPE ]]; then
     mkfifo $NAMPIPE
 fi
