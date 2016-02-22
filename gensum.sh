@@ -112,8 +112,7 @@ comparesum() {
     esac
     if ! test -v STR; then
         local csum
-        $("$1" "$2" | awk $parms > $NAMPIPE) &
-        csum=$(pv -t -p < $NAMPIPE)
+        csum=$(pv -N "${1/sum/}" "$2" | "$1" | awk $parms )
         tput cuu 1
         tput el
         _writetofile "$csum $(basename $2)"
@@ -212,12 +211,14 @@ checksum_cascade() {
         archive "$1"
     elif [[ -d $1 ]]; then
         if [ -n "$DOTFILES" ]; then
-            for f in $(find $1 -type f); do
-                checksum_cascade "$f" #I call this because $f can be still an archive, but is never a directory.
+            find "$1" -type f -print0 | 
+            while IFS= read -r -d $'\0' line; do 
+                checksum_cascade "$line"
             done
         else
-            for f in $(find $1 -type f -not -path '*/\.*'); do
-                checksum_cascade "$f" #I call this because $f can be still an archive, but is never a directory.
+            find "$1" -type f -not -path '*/\.*' -print0 |
+            while IFS= read -r -d $'\0' line; do 
+                checksum_cascade "$line"
             done
         fi
     else
@@ -353,7 +354,7 @@ argsparser() {
             :) _echo "error" "-$OPTARG parameter is mandatory."
                 _exit 1
             ;;
-            v) _echo "raw" "$version $date"
+            v) _echo "raw" "$version $date\n"
                 _exit 0
             ;;
         esac
