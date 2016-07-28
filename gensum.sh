@@ -20,7 +20,7 @@ dep=(unar wget)
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 version="1.8"
-date="(22/02/2016)"
+date="(29/07/2016)"
 OUTFILE=""
 # For text colour
 readonly RED="\033[01;31m"
